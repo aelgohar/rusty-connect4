@@ -1,0 +1,51 @@
+<!DOCTYPE html>
+<html>
+<link rel="stylesheet" href="http://www.w3schools.com/lib/w3.css">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Poppins">
+<style>
+body,h1,h2,h3,h4,h5 {font-family: "Poppins", sans-serif}
+body {font-size:16px;}
+.w3-half img{margin-bottom:-6px;margin-top:16px;opacity:0.8;cursor:pointer}
+.w3-half img:hover{opacity:1}
+
+table, th , td  {
+  border: 1px solid grey;
+  border-collapse: collapse;
+  padding: 5px;
+}
+table tr:nth-child(odd) {
+  background-color: #f1f1f1;
+}
+table tr:nth-child(even) {
+  background-color: #ffffff;
+}
+
+</style>
+<body ng-app="Connect4App">
+    <head>
+        <title> Yew Router Sidebar</title>
+        <meta charset="utf-8" />
+        <meta http-equiv="X-UA-Compatible" content="IE=edge" />
+        <meta content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=1" name="viewport" />
+        <script>
+          var Module = {};
+          var __cargo_web = {};
+          Object.defineProperty( Module, 'canvas', {
+            get: function() {
+              if( __cargo_web.canvas ) {
+                return __cargo_web.canvas;
+              }
+              var canvas = document.createElement( 'canvas' );
+              document.querySelector( 'body' ).appendChild( canvas );
+              __cargo_web.canvas = canvas;
+              return canvas;
+            }
+          });
+        </script>
+    </head>
+    <body style="margin: 0; padding: 0; height: 100vh; overflow: hidden">
+        <script>Module = {};</script> <!--This is required to avoid a runtime error at startup-->
+        <script src="/sidebar.js"></script>
+    </body>
+
+</html>
