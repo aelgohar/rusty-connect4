@@ -1,4 +1,5 @@
 #![recursion_limit = "100000"]
+#![allow(warnings)]
 mod Connect4Computer;
 mod Connect4Human;
 mod HowToConnect4;
@@ -8,11 +9,14 @@ mod Scores;
 mod TootOttoComputer;
 mod TootOttoHuman;
 mod Welcome;
+mod canvas;
 mod display_window;
 mod page;
+mod player;
 mod sidebar;
 
 pub use crate::{
+    canvas::CanvasModel,
     page::{Page, PageProps},
     sidebar::{Sidebar, SidebarProps},
 };

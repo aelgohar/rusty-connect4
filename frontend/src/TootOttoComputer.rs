@@ -1,11 +1,7 @@
+use crate::player::Player;
 use yew::html::InputData;
 use yew::{prelude::*, virtual_dom::VNode, Properties};
 use yew_router::{prelude::*, switch::AllowMissing};
-
-#[derive(Debug)]
-pub struct Player {
-    pub value: String,
-}
 
 pub struct TootOttoComputerModel {
     props: Props,
@@ -88,9 +84,10 @@ impl Component for TootOttoComputerModel {
                     </button>
                 </div>
             </div>
-            <div>
-                <canvas id="gameboard" height="480" width="640"></canvas>
-            </div>
+            <br></br>
+            <h4>{format!("New Game: {} Vs Computer", self.player.value)}</h4>
+            <small>{format!("(Winning Combination: {} - ", self.player.value)} <b>{"TOOT"}</b> {"   and    Computer - "} <b>{"OTTO)"}</b></small>
+            <br></br>
             </>
         };
     }
