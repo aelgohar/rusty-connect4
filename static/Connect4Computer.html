@@ -1,0 +1,26 @@
+<div id='main' ng-controller="mainController">
+
+  <div class="w3-container" id="services" style="margin-top:75px">
+    <h5 class="w3-xxxlarge w3-text-red"><b>Enter Your Name</b></h5>
+    <hr style="width:50px;border:5px solid red" class="w3-round">
+  </div>
+     <div class="col-md-offset-4 col-md-8">
+      <form  ng-submit="Game()">
+        <div class="col-md-offset-3 col-md-8">
+
+          <input id="textbox1" type="text" placeholder="Your Name" ng-model="newGame.Player1Name"/>
+          <input id="startbutton" class="button" type="submit" value="Start Game"/>
+        </div>
+      </form>
+      <div class='post' ng-repeat="game in games">
+        <br></br>
+        <h4>New Game:  {{game.Player1Name}} Vs {{game.Player2Name}}</h4>
+        <small>(Disc Colors: {{game.Player1Name}} - <b>Red</b>    and    {{game.Player2Name}} - <b>Yellow</b>)</small>
+        <br></br>
+      </div>  
+        <canvas id="gameboard" height="480" width="640"></canvas>
+
+    </div>
+</div>
+
+

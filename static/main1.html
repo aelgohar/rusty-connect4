@@ -1,0 +1,31 @@
+<!doctype html>
+<html>
+  <head>
+    <title>Play Connect4 Game</title>
+     <script src="https://ajax.googleapis.com/ajax/libs/angularjs/1.5.6/angular.min.js"></script>
+     <script src="javascripts/Connect4Human.js"></script>
+     <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.2/css/bootstrap.min.css">
+     <link rel="stylesheet" href="stylesheets/style.css">
+  </head>
+  <body ng-app="Connect4Human">
+    <div id='main' ng-controller="humanController">
+      <div class="col-md-offset-4 col-md-8">
+        
+      <form  ng-submit="Game()">
+        <h3>Play Connect 4</h3>
+        </div>
+        <div class="col-md-offset-3 col-md-8">
+        <input id="textbox1" type="text" placeholder"" ng-model="newGame.Player1"/>
+        <input id="textbox2" type="text" placeholder"" ng-model="newGame.Player2"/>
+        <input id="startbutton" class="button" type="submit" value="Start Game"/>
+      </form>
+      <div class='post' ng-repeat="game in games">
+        <h4>New Game</h4>
+        <p>{{game.Player1}} Vs {{game.Player2}}</p>
+      </div>  
+        <canvas id="gameboard" height="480" width="640"></canvas>
+      
+    </div>
+    </div>
+ 
+</html>

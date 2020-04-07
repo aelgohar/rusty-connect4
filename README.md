@@ -19,6 +19,7 @@ cargo web build
 ### Run
 
 ```bash
-cargo web start
+(cd frontend && cargo web deploy)
+cargo run -p backend
 ```
 
