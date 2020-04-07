@@ -71,43 +71,43 @@ impl Component for Model {
         html! {
             <Sidebar>
                 <Page
-                    uri="HowToConnect4"
-                    page_url="/HowToConnect4"
+                    uri="Connect4Computer"
+                    page_url="/#HowToConnect4"
                     title="How to Play Connect4"
                 />
                 <Page
                     uri="Connect4Computer"
-                    page_url="/Connect4Computer"
+                    page_url="/#Connect4Computer"
                     title="Play Connect4 With Computer"
                 />
                 <Page
                     uri="Connect4Human"
-                    page_url="/Connect4Human"
+                    page_url="/#Connect4Human"
                     title="Play Connect4 with Another Human"
                 />
                 <Page
                      uri="HowToToot"
-                     page_url="/HowToToot"
+                     page_url="/#HowToToot"
                      title="How to Play TOOT-OTTO"
                 />
                 <Page
                     uri="TootOttoComputer"
-                    page_url="/TootOttoComputer"
+                    page_url="/#TootOttoComputer"
                     title="Play Toot-Otto With Computer"
                 />
                 <Page
                     uri="TootOttoHuman"
-                    page_url="/TootOttoHuman"
+                    page_url="/#TootOttoHuman"
                     title="Play Toot-Otto With Another Human"
                 />
                 <Page
                     uri="ScoreBoard"
-                    page_url="/ScoreBoard"
+                    page_url="/#ScoreBoard"
                     title="View Game History"
                 />
                 <Page
                     uri="Scores"
-                    page_url="/Scores"
+                    page_url="/#Scores"
                     title="Score Board"
                 />
             </Sidebar>

@@ -2,6 +2,7 @@ use crate::{
     display_window::DisplayWindow,
     page::{Page, PageProps},
 };
+
 use yew::{html::ChildrenWithProps, prelude::*, virtual_dom::VNode, Properties};
 use yew_router::{agent::RouteRequest::GetCurrentRoute, matcher::RouteMatcher, prelude::*};
 
@@ -82,7 +83,7 @@ impl Component for Sidebar {
 
                         {for list_items}
                     </nav>
-                    <div style="overflow-y: auto; padding-left: 350px">
+                    <div style="overflow-y: auto; padding-left: 390px">
                     {
                         html !{
                             <DisplayWindow uri=active_markdown_uri />
