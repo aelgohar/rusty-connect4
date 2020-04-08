@@ -8,8 +8,10 @@ pub struct Connect4ComputerModel {
     player: Player,
     update_player_name: Callback<InputData>,
     start_game_callback: Callback<ClickEvent>,
+    end_game_callback: Callback<i64>,
     is_game_on: bool,
     disabled: bool,
+    display_state: String,
 }
 
 #[derive(Clone, PartialEq, Properties)]
@@ -20,6 +22,7 @@ pub struct Props {
 pub enum Msg {
     NewPlayer(InputData),
     StartGame,
+    EndGame,
 }
 
 impl Component for Connect4ComputerModel {
@@ -36,8 +39,10 @@ impl Component for Connect4ComputerModel {
             player,
             update_player_name: link.callback(|e: InputData| Msg::NewPlayer(e)),
             start_game_callback: link.callback(|e| Msg::StartGame),
+            end_game_callback: link.callback(|e: i64| Msg::EndGame),
             is_game_on: false,
             disabled: false,
+            display_state: "none".to_string(),
         }
     }
 
@@ -47,6 +52,12 @@ impl Component for Connect4ComputerModel {
             Msg::StartGame => {
                 self.is_game_on = true;
                 self.disabled = true;
+                self.display_state = "block".to_string();
+            } 
+            Msg::EndGame => {
+                self.is_game_on = false;
+                self.disabled = false;
+                self.display_state = "none".to_string();
             }
         }
 
@@ -83,12 +94,12 @@ impl Component for Connect4ComputerModel {
                     </button>
                 </div>
             </div>
-            <div disabled={!self.disabled}> //doesn't work
+            <div style=format!("display: {}", self.display_state)>
                 <br></br>
                 <h4>{format!("New Game: {} Vs Computer", self.player.value)}</h4>
                 <small>{format!("(Disc Colors: {} - ", self.player.value)} <b>{"Red"}</b> {"   and    Computer - "} <b>{"Yellow)"}</b></small>
                 <br></br>
-                <CanvasModel/>
+                <CanvasModel player1 = self.player.value.clone(), player2 = "Computer" game_done_cbk=&self.end_game_callback/>
             </div>
             </>
         }

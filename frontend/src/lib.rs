@@ -15,6 +15,9 @@ mod page;
 mod player;
 mod sidebar;
 
+#[macro_use]
+extern crate stdweb;
+
 pub use crate::{
     canvas::CanvasModel,
     page::{Page, PageProps},

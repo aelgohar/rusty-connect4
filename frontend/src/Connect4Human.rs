@@ -10,8 +10,10 @@ pub struct Connect4HumanModel {
     update_player1_name: Callback<InputData>,
     update_player2_name: Callback<InputData>,
     start_game_callback: Callback<ClickEvent>,
+    end_game_callback: Callback<i64>,
     is_game_on: bool,
     disabled: bool,
+    display_state: String,
 }
 
 #[derive(Clone, PartialEq, Properties)]
@@ -24,6 +26,7 @@ pub enum Msg {
     NewPlayer1(InputData),
     NewPlayer2(InputData),
     StartGame,
+    EndGame,
 }
 
 impl Component for Connect4HumanModel {
@@ -46,8 +49,10 @@ impl Component for Connect4HumanModel {
             update_player1_name: link.callback(|e: InputData| Msg::NewPlayer1(e)),
             update_player2_name: link.callback(|e: InputData| Msg::NewPlayer2(e)),
             start_game_callback: link.callback(|e| Msg::StartGame),
+            end_game_callback: link.callback(|e: i64| Msg::EndGame),
             is_game_on: false,
             disabled: false,
+            display_state: "none".to_string(),
         }
     }
 
@@ -58,6 +63,12 @@ impl Component for Connect4HumanModel {
             Msg::StartGame => {
                 self.is_game_on = true;
                 self.disabled = true;
+                self.display_state = "block".to_string();
+            }
+            Msg::EndGame => {
+                self.is_game_on = false;
+                self.disabled = false;
+                self.display_state = "none".to_string();
             }
         }
 
@@ -70,9 +81,6 @@ impl Component for Connect4HumanModel {
     }
 
     fn view(&self) -> VNode {
-        {
-            log::trace!("{}", self.disabled)
-        }
         html! {
             <>
             <div class="w3-container" id="services" style="margin-top:75px">
@@ -103,12 +111,12 @@ impl Component for Connect4HumanModel {
                     </button>
                 </div>
             </div>
-            <div disabled={!self.disabled}> //doesn't work
+            <div style=format!("display: {}", self.display_state)>
                 <br></br>
                 <h4>{format!("New Game: {} Vs {}", self.player1.value, self.player2.value)}</h4>
-                <small>{format!("(Disc Colors: {} - ", self.player1.value)} <b>{"Red"}</b> {format!("   and    {} - ", self.player2.value)} <b>{"Yellow)"}</b></small>
+                <small disabled={!self.disabled}>{format!("(Disc Colors: {} - ", self.player1.value)} <b>{"Red"}</b> {format!("   and    {} - ", self.player2.value)} <b>{"Yellow)"}</b></small>
                 <br></br>
-                <CanvasModel/>
+                <CanvasModel: player1 = self.player1.value.clone(), player2=self.player2.value.clone(), game_done_cbk=&self.end_game_callback/>
             </div>
             </>
         }
