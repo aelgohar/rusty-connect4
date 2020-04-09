@@ -1,4 +1,5 @@
 use crate::player::Player;
+use crate::toot_canvas::TootCanvasModel;
 use yew::html::InputData;
 use yew::{prelude::*, virtual_dom::VNode, Properties};
 use yew_router::{prelude::*, switch::AllowMissing};
@@ -9,9 +10,13 @@ pub struct TootOttoHumanModel {
     player2: Player,
     update_player1_name: Callback<InputData>,
     update_player2_name: Callback<InputData>,
+    update_letter: Callback<InputData>,
     start_game_callback: Callback<ClickEvent>,
+    end_game_callback: Callback<i64>,
     is_game_on: bool,
     disabled: bool,
+    display_state: String,
+    letter: String,
 }
 
 #[derive(Clone, PartialEq, Properties)]
@@ -24,6 +29,8 @@ pub enum Msg {
     NewPlayer1(InputData),
     NewPlayer2(InputData),
     StartGame,
+    EndGame,
+    UpdateLetter(InputData),
 }
 
 impl Component for TootOttoHumanModel {
@@ -45,9 +52,13 @@ impl Component for TootOttoHumanModel {
             player2,
             update_player1_name: link.callback(|e: InputData| Msg::NewPlayer1(e)),
             update_player2_name: link.callback(|e: InputData| Msg::NewPlayer2(e)),
+            update_letter: link.callback(|e: InputData| Msg::UpdateLetter(e)),
             start_game_callback: link.callback(|e| Msg::StartGame),
+            end_game_callback: link.callback(|e: i64| Msg::EndGame),
             is_game_on: false,
             disabled: false,
+            display_state: "none".to_string(),
+            letter: "T".to_string(),
         }
     }
 
@@ -58,6 +69,15 @@ impl Component for TootOttoHumanModel {
             Msg::StartGame => {
                 self.is_game_on = true;
                 self.disabled = true;
+                self.display_state = "block".to_string();
+            }
+            Msg::EndGame => {
+                self.is_game_on = false;
+                self.disabled = false;
+                // self.display_state = "none".to_string();
+            }
+            Msg::UpdateLetter(e) => {
+                self.letter = e.value.to_string();
             }
         }
 
@@ -101,8 +121,18 @@ impl Component for TootOttoHumanModel {
                 </div>
             </div>
             <br></br>
-            <h4>{format!("New Game: {} Vs {}", self.player1.value, self.player2.value)}</h4>
-            <small>{format!("(Winning Combination: {} - ", self.player1.value)} <b>{"TOOT"}</b> {format!("   and    {} - ", self.player2.value)} <b>{"OTTO)"}</b></small>
+            <div style=format!("display: {}", self.display_state)>
+                <h4>{format!("New Game: {} Vs {}", self.player1.value, self.player2.value)}</h4>
+                <small>{format!("(Winning Combination: {} - ", self.player1.value)} <b>{"TOOT"}</b> {format!("   and    {} - ", self.player2.value)} <b>{"OTTO)"}</b></small>
+                <br></br>
+                <h4>{"Select a Disc Type   :"}</h4>
+                <input type="radio" id="T" name="gender" value="T" oninput=&self.update_letter/>
+                <label for="T">{"T"}</label><br></br>
+                <input type="radio" id="O" name="gender" value="O" oninput=&self.update_letter/>
+                <label for="O">{"O"}</label>
+                <br></br>
+                <TootCanvasModel: canvas_id="toot_human" player1 = self.player1.value.clone(), player2=self.player2.value.clone(), letter=self.letter.clone(), game_done_cbk=&self.end_game_callback/>
+            </div>
             <br></br>
             </>
         };

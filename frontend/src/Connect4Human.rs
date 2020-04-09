@@ -68,7 +68,7 @@ impl Component for Connect4HumanModel {
             Msg::EndGame => {
                 self.is_game_on = false;
                 self.disabled = false;
-                self.display_state = "none".to_string();
+                // self.display_state = "none".to_string();
             }
         }
 
@@ -90,10 +90,10 @@ impl Component for Connect4HumanModel {
             <div class="col-md-offset-3 col-md-8">
                 <div class="col-md-offset-3 col-md-8">
                     <input
-                    id="textbox1",
-                    type="text",
-                    placeholder="Player 1's Name",
-                    oninput = &self.update_player1_name,
+                        id="textbox1",
+                        type="text",
+                        placeholder="Player 1's Name",
+                        oninput = &self.update_player1_name,
                     />
                     <input
                         id="textbox2",
@@ -116,7 +116,7 @@ impl Component for Connect4HumanModel {
                 <h4>{format!("New Game: {} Vs {}", self.player1.value, self.player2.value)}</h4>
                 <small disabled={!self.disabled}>{format!("(Disc Colors: {} - ", self.player1.value)} <b>{"Red"}</b> {format!("   and    {} - ", self.player2.value)} <b>{"Yellow)"}</b></small>
                 <br></br>
-                <CanvasModel: player1 = self.player1.value.clone(), player2=self.player2.value.clone(), game_done_cbk=&self.end_game_callback/>
+                <CanvasModel: canvas_id = "connect_human" player1 = self.player1.value.clone(), player2=self.player2.value.clone(), game_done_cbk=&self.end_game_callback/>
             </div>
             </>
         }
