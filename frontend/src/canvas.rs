@@ -1,12 +1,10 @@
 use crate::player::Player;
 use stdweb::traits::*;
 use stdweb::unstable::TryInto;
-use stdweb::web::event::{MouseMoveEvent, ResizeEvent};
 use stdweb::web::html_element::CanvasElement;
 use stdweb::web::FillRule;
 use stdweb::web::{document, window, CanvasRenderingContext2d};
 use yew::{prelude::*, virtual_dom::VNode, Properties};
-use yew_router::{prelude::*, switch::AllowMissing};
 
 macro_rules! enclose {
     ( ($( $x:ident ),*) $y:expr ) => {
@@ -55,9 +53,10 @@ impl CanvasModel {
         self.draw_mask();
     }
 
+    #[inline]
     pub fn check_state(&self, state: &Vec<Vec<i64>>) -> (i64, i64) {
-        let mut winVal = 0;
-        let mut chainVal = 0;
+        let mut win_val = 0;
+        let mut chain_val = 0;
         let (mut temp_r, mut temp_b, mut temp_br, mut temp_tr) = (0, 0, 0, 0);
         for i in 0..6 {
             for j in 0..7 {
@@ -66,40 +65,40 @@ impl CanvasModel {
                 temp_br = 0;
                 temp_tr = 0;
                 for k in 0..=3 {
-                    if (j + k < 7) {
+                    if j + k < 7 {
                         temp_r += state[i][j + k];
                     }
 
-                    if (i + k < 6) {
+                    if i + k < 6 {
                         temp_b += state[i + k][j];
                     }
 
-                    if (i + k < 6 && j + k < 7) {
+                    if i + k < 6 && j + k < 7 {
                         temp_br += state[i + k][j + k];
                     }
 
-                    if (i >= k && j + k < 7) {
+                    if i >= k && j + k < 7 {
                         temp_tr += state[i - k][j + k];
                     }
                 }
-                chainVal += temp_r * temp_r * temp_r;
-                chainVal += temp_b * temp_b * temp_b;
-                chainVal += temp_br * temp_br * temp_br;
-                chainVal += temp_tr * temp_tr * temp_tr;
+                chain_val += temp_r * temp_r * temp_r;
+                chain_val += temp_b * temp_b * temp_b;
+                chain_val += temp_br * temp_br * temp_br;
+                chain_val += temp_tr * temp_tr * temp_tr;
 
                 if temp_r.abs() == 4 {
-                    winVal = temp_r;
+                    win_val = temp_r;
                 } else if temp_b.abs() == 4 {
-                    winVal = temp_b;
+                    win_val = temp_b;
                 } else if temp_br.abs() == 4 {
-                    winVal = temp_br;
+                    win_val = temp_br;
                 } else if temp_tr.abs() == 4 {
-                    winVal = temp_tr;
+                    win_val = temp_tr;
                 }
             }
         }
 
-        return (winVal, chainVal);
+        return (win_val, chain_val);
     }
 
     pub fn value(
@@ -111,46 +110,46 @@ impl CanvasModel {
         mut beta: i64,
     ) -> (i64, i64) {
         let val = self.check_state(state);
-        if (depth >= 4) {
+        if depth >= 4 {
             // if slow (or memory consumption is high), lower the value
-            let mut retValue = 0;
+            let mut ret_val = 0;
 
             // if win, value = +inf
-            let winVal = val.0;
-            let chainVal = val.1 * ai_move_value;
-            retValue = chainVal;
+            let win_val = val.0;
+            let chain_val = val.1 * ai_move_value;
+            ret_val = chain_val;
 
             // If it lead to winning, then do it
-            if (winVal == 4 * ai_move_value) {
+            if win_val == 4 * ai_move_value {
                 // AI win, AI wants to win of course
-                retValue = 999999;
-            } else if (winVal == 4 * ai_move_value * -1) {
+                ret_val = 999999;
+            } else if win_val == 4 * ai_move_value * -1 {
                 // AI lose, AI hates losing
-                retValue = 999999 * -1;
+                ret_val = 999999 * -1;
             }
-            retValue -= depth * depth;
+            ret_val -= depth * depth;
 
-            return (retValue, -1);
+            return (ret_val, -1);
         }
 
         let win = val.0;
         // if already won, then return the value right away
-        if (win == 4 * ai_move_value) {
+        if win == 4 * ai_move_value {
             // AI win, AI wants to win of course
             return (999999 - depth * depth, -1);
         }
-        if (win == 4 * ai_move_value * -1) {
+        if win == 4 * ai_move_value * -1 {
             // AI lose, AI hates losing
             return (999999 * -1 - depth * depth, -1);
         }
 
-        if (depth % 2 == 0) {
-            return self.minState(ai_move_value, state, depth + 1, alpha, beta);
+        if depth % 2 == 0 {
+            return self.min_state(ai_move_value, state, depth + 1, alpha, beta);
         }
-        return self.maxState(ai_move_value, state, depth + 1, alpha, beta);
+        return self.max_state(ai_move_value, state, depth + 1, alpha, beta);
     }
 
-    pub fn maxState(
+    pub fn max_state(
         &self,
         ai_move_value: i64,
         state: &Vec<Vec<i64>>,
@@ -160,35 +159,35 @@ impl CanvasModel {
     ) -> (i64, i64) {
         let mut v = -100000000007;
         let mut new_move: i64 = -1;
-        let mut moveQueue = Vec::new();
+        let mut move_queue = Vec::new();
 
         for j in 0..7 {
-            let tempState = self.fill_map(state, j, ai_move_value);
-            if (tempState[0][0] != 999) {
-                let tempVal = self.value(ai_move_value, &tempState, depth, alpha, beta);
-                if (tempVal.0 > v) {
-                    v = tempVal.0;
+            let temp_state = self.fill_map(state, j, ai_move_value);
+            if temp_state[0][0] != 999 {
+                let temp_val = self.value(ai_move_value, &temp_state, depth, alpha, beta);
+                if temp_val.0 > v {
+                    v = temp_val.0;
                     new_move = j as i64;
-                    moveQueue = Vec::new();
-                    moveQueue.push(j);
-                } else if (tempVal.0 == v) {
-                    moveQueue.push(j);
+                    move_queue = Vec::new();
+                    move_queue.push(j);
+                } else if temp_val.0 == v {
+                    move_queue.push(j);
                 }
 
                 // alpha-beta pruning
-                if (v > beta) {
-                    new_move = self.choose(&moveQueue);
+                if v > beta {
+                    new_move = self.choose(&move_queue);
                     return (v, new_move);
                 }
                 alpha = std::cmp::max(alpha, v);
             }
         }
-        new_move = self.choose(&moveQueue);
+        new_move = self.choose(&move_queue);
 
         return (v, new_move);
     }
 
-    pub fn minState(
+    pub fn min_state(
         &self,
         ai_move_value: i64,
         state: &Vec<Vec<i64>>,
@@ -198,30 +197,30 @@ impl CanvasModel {
     ) -> (i64, i64) {
         let mut v = 100000000007;
         let mut new_move: i64 = -1;
-        let mut moveQueue = Vec::new();
+        let mut move_queue = Vec::new();
 
         for j in 0..7 {
-            let tempState = self.fill_map(state, j, ai_move_value * -1);
-            if (tempState[0][0] != 999) {
-                let tempVal = self.value(ai_move_value, &tempState, depth, alpha, beta);
-                if (tempVal.0 < v) {
-                    v = tempVal.0;
+            let temp_state = self.fill_map(state, j, ai_move_value * -1);
+            if temp_state[0][0] != 999 {
+                let temp_val = self.value(ai_move_value, &temp_state, depth, alpha, beta);
+                if temp_val.0 < v {
+                    v = temp_val.0;
                     new_move = j as i64;
-                    moveQueue = Vec::new();
-                    moveQueue.push(j);
-                } else if (tempVal.0 == v) {
-                    moveQueue.push(j);
+                    move_queue = Vec::new();
+                    move_queue.push(j);
+                } else if temp_val.0 == v {
+                    move_queue.push(j);
                 }
 
                 // alpha-beta pruning
-                if (v < alpha) {
-                    new_move = self.choose(&moveQueue);
+                if v < alpha {
+                    new_move = self.choose(&move_queue);
                     return (v, new_move);
                 }
                 beta = std::cmp::min(beta, v);
             }
         }
-        new_move = self.choose(&moveQueue);
+        new_move = self.choose(&move_queue);
 
         return (v, new_move);
     }
@@ -242,12 +241,10 @@ impl CanvasModel {
 
     pub fn ai(&mut self, ai_move_value: i64) {
         let new_map = self.map.clone();
-        let val_choice = self.maxState(ai_move_value, &new_map, 0, -100000000007, 100000000007);
+        let val_choice = self.max_state(ai_move_value, &new_map, 0, -100000000007, 100000000007);
 
         let val = val_choice.0;
         let choice = val_choice.1;
-
-        // log::info!("AI move value {} choose column: {}, value: {}", ai_move_value, choice, val);
 
         self.paused = false;
         // TODO: Add rejectclick callback
@@ -255,34 +252,34 @@ impl CanvasModel {
 
         // TODO: Add rejectclick callback
         while done < 0 {
-            // log::info!("Using random agent");
+            log::info!("Using random agent");
             let random_choice = self.get_random_val(7);
             done = self.action(random_choice, true);
         }
     }
 
     pub fn fill_map(&self, new_state: &Vec<Vec<i64>>, column: usize, value: i64) -> Vec<Vec<i64>> {
-        let mut tempMap = new_state.clone();
-        if (tempMap[0][column] != 0 || column < 0 || column > 6) {
-            tempMap[0][0] = 999; // error code
+        let mut temp_map = new_state.clone();
+        if temp_map[0][column] != 0 || column > 6 {
+            temp_map[0][0] = 999; // error code
         }
 
         let mut done = false;
         let mut row = 0;
 
         for i in 0..5 {
-            if (tempMap[i + 1][column] != 0) {
+            if temp_map[i + 1][column] != 0 {
                 done = true;
                 row = i;
                 break;
             }
         }
-        if (!done) {
+        if !done {
             row = 5;
         }
 
-        tempMap[row][column] = value;
-        return tempMap;
+        temp_map[row][column] = value;
+        return temp_map;
     }
 
     pub fn draw_circle(&self, x: u32, y: u32, fill: &str, stroke: &str) {
@@ -328,9 +325,9 @@ impl CanvasModel {
         for y in 0..6 {
             for x in 0..7 {
                 let mut fg_color = "transparent";
-                if (self.map[y][x] >= 1) {
+                if self.map[y][x] >= 1 {
                     fg_color = "#ff4136";
-                } else if (self.map[y][x] <= -1) {
+                } else if self.map[y][x] <= -1 {
                     fg_color = "#ffff00";
                 }
                 self.draw_circle(
@@ -352,19 +349,19 @@ impl CanvasModel {
                 temp_br = 0;
                 temp_tr = 0;
                 for k in 0..=3 {
-                    if (j + k < 7) {
+                    if j + k < 7 {
                         temp_r += self.map[i][j + k];
                     }
 
-                    if (i + k < 6) {
+                    if i + k < 6 {
                         temp_b += self.map[i + k][j];
                     }
 
-                    if (i + k < 6 && j + k < 7) {
+                    if i + k < 6 && j + k < 7 {
                         temp_br += self.map[i + k][j + k];
                     }
 
-                    if (i >= k && j + k < 7) {
+                    if i >= k && j + k < 7 {
                         temp_tr += self.map[i - k][j + k];
                     }
                 }
@@ -377,11 +374,10 @@ impl CanvasModel {
                 } else if temp_tr.abs() == 4 {
                     self.win(temp_tr);
                 }
-                // log::debug!("values: {} {} {} {}", temp_r, temp_b, temp_br, temp_tr);
             }
         }
         // check if draw
-        if ((self.current_move == 42) && (!self.won)) {
+        if (self.current_move == 42) && (!self.won) {
             self.win(0);
         }
     }
@@ -400,7 +396,7 @@ impl CanvasModel {
     }
 
     pub fn player_move(&self) -> i64 {
-        if (self.current_move % 2 == 0) {
+        if self.current_move % 2 == 0 {
             return 1;
         }
         return -1;
@@ -415,13 +411,13 @@ impl CanvasModel {
         mode: bool,
     ) {
         let mut fg_color = "transparent";
-        if (current_move >= 1) {
+        if current_move >= 1 {
             fg_color = "#ff4136";
-        } else if (current_move <= -1) {
+        } else if current_move <= -1 {
             fg_color = "#ffff00";
         }
 
-        if (to_row * 75 >= cur_pos) {
+        if to_row * 75 >= cur_pos {
             self.clear();
             self.draw();
             self.draw_circle(
@@ -450,24 +446,24 @@ impl CanvasModel {
     }
 
     pub fn action(&mut self, column: usize, mode: bool) -> i64 {
-        if (self.paused || self.won) {
+        if self.paused || self.won {
             return 0;
         }
 
-        if (self.map[0][column] != 0 || column < 0 || column > 6) {
+        if self.map[0][column] != 0 || column > 6 {
             return -1;
         }
 
         let mut done = false;
         let mut row = 0;
         for i in 0..5 {
-            if (self.map[i + 1][column] != 0) {
+            if self.map[i + 1][column] != 0 {
                 done = true;
                 row = i;
                 break;
             }
         }
-        if (!done) {
+        if !done {
             row = 5;
         }
 
@@ -482,16 +478,10 @@ impl CanvasModel {
         self.won = true;
         self.reject_click = false;
 
-        // log::debug!(
-        //     "players {} {}",
-        //     self.props.player1.as_ref().unwrap(),
-        //     self.props.player2.as_ref().unwrap()
-        // );
-
         let mut msg = String::new();
-        if (player > 0) {
+        if player > 0 {
             msg = format!("{} wins", self.props.player1.as_ref().unwrap());
-        } else if (player < 0) {
+        } else if player < 0 {
             msg = format!("{} wins", self.props.player2.as_ref().unwrap());
         } else {
             msg = "It's a draw".to_string();
@@ -558,7 +548,7 @@ impl Component for CanvasModel {
                 let x = e.client_x() as f64 - rect.get_left();
 
                 for j in 0..7 {
-                    if (self.on_region(x, (75 * j + 100) as f64, 25 as f64)) {
+                    if self.on_region(x, (75 * j + 100) as f64, 25 as f64) {
                         self.paused = false;
 
                         let valid = self.action(j, false);
@@ -571,7 +561,6 @@ impl Component for CanvasModel {
                 }
             }
             Message::AnimateCallback((a, b, c, d, e)) => {
-                // log::info!("called that");
                 self.animate(a, b, c, d, e);
             }
         };
@@ -610,6 +599,7 @@ impl Component for CanvasModel {
     }
 }
 
+#[inline(always)]
 fn canvas(id: &str) -> CanvasElement {
     document()
         .query_selector(&format!("#{}", id))
@@ -619,6 +609,7 @@ fn canvas(id: &str) -> CanvasElement {
         .unwrap()
 }
 
+#[inline(always)]
 fn context(id: &str) -> CanvasRenderingContext2d {
     canvas(id).get_context().unwrap()
 }

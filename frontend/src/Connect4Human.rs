@@ -1,7 +1,6 @@
 use crate::canvas::CanvasModel;
 use crate::player::Player;
 use yew::{prelude::*, virtual_dom::VNode, Properties};
-use yew_router::{prelude::*, switch::AllowMissing};
 
 pub struct Connect4HumanModel {
     props: Props,

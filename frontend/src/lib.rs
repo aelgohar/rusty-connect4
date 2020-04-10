@@ -18,6 +18,7 @@ mod toot_canvas;
 
 #[macro_use]
 extern crate stdweb;
+extern crate log;
 
 pub use crate::{
     canvas::CanvasModel,

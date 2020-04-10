@@ -2,7 +2,6 @@ use crate::player::Player;
 use crate::toot_canvas::TootCanvasModel;
 use yew::html::InputData;
 use yew::{prelude::*, virtual_dom::VNode, Properties};
-use yew_router::{prelude::*, switch::AllowMissing};
 
 pub struct TootOttoHumanModel {
     props: Props,
