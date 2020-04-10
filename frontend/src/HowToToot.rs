@@ -1,23 +1,14 @@
 use yew::{prelude::*, virtual_dom::VNode, Properties};
 use yew_router::{prelude::*, switch::AllowMissing};
 
-pub struct HowToTootModel {
-    props: Props,
-}
-
-#[derive(Clone, PartialEq, Properties)]
-pub struct Props {
-    // pub route: Option<ARoute>,
-}
-
-pub enum Msg {}
+pub struct HowToTootModel;
 
 impl Component for HowToTootModel {
-    type Message = Msg;
-    type Properties = Props;
+    type Message = ();
+    type Properties = ();
 
     fn create(props: Self::Properties, _link: ComponentLink<Self>) -> Self {
-        HowToTootModel { props }
+        HowToTootModel
     }
 
     fn update(&mut self, _msg: Self::Message) -> ShouldRender {
@@ -25,8 +16,7 @@ impl Component for HowToTootModel {
     }
 
     fn change(&mut self, props: Self::Properties) -> ShouldRender {
-        self.props = props;
-        true
+        false
     }
 
     fn view(&self) -> VNode {

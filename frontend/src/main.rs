@@ -1,4 +1,4 @@
-use sidebar::{CanvasModel, Page, Sidebar};
+use frontend::{CanvasModel, Page, Sidebar};
 use stdweb::traits::*;
 use stdweb::unstable::TryInto;
 use stdweb::web::event::{MouseMoveEvent, ResizeEvent};

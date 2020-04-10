@@ -4,7 +4,6 @@ use yew::{prelude::*, virtual_dom::VNode, Properties};
 use yew_router::{prelude::*, switch::AllowMissing};
 
 pub struct Connect4ComputerModel {
-    props: Props,
     player: Player,
     update_player_name: Callback<InputData>,
     start_game_callback: Callback<ClickEvent>,
@@ -12,11 +11,6 @@ pub struct Connect4ComputerModel {
     is_game_on: bool,
     disabled: bool,
     display_state: String,
-}
-
-#[derive(Clone, PartialEq, Properties)]
-pub struct Props {
-    // pub route: Option<ARoute>,
 }
 
 pub enum Msg {
@@ -27,7 +21,7 @@ pub enum Msg {
 
 impl Component for Connect4ComputerModel {
     type Message = Msg;
-    type Properties = Props;
+    type Properties = ();
 
     fn create(props: Self::Properties, link: ComponentLink<Self>) -> Self {
         let player = Player {
@@ -35,7 +29,6 @@ impl Component for Connect4ComputerModel {
         };
 
         Connect4ComputerModel {
-            props,
             player,
             update_player_name: link.callback(|e: InputData| Msg::NewPlayer(e)),
             start_game_callback: link.callback(|e| Msg::StartGame),
@@ -65,8 +58,7 @@ impl Component for Connect4ComputerModel {
     }
 
     fn change(&mut self, props: Self::Properties) -> ShouldRender {
-        self.props = props;
-        true
+        false
     }
 
     fn view(&self) -> VNode {

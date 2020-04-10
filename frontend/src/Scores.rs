@@ -1,23 +1,16 @@
 use yew::{prelude::*, virtual_dom::VNode, Properties};
 use yew_router::{prelude::*, switch::AllowMissing};
 
-pub struct ScoresModel {
-    props: Props,
-}
-
-#[derive(Clone, PartialEq, Properties)]
-pub struct Props {
-    // pub route: Option<ARoute>,
-}
+pub struct ScoresModel;
 
 pub enum Msg {}
 
 impl Component for ScoresModel {
     type Message = Msg;
-    type Properties = Props;
+    type Properties = ();
 
     fn create(props: Self::Properties, _link: ComponentLink<Self>) -> Self {
-        ScoresModel { props }
+        ScoresModel
     }
 
     fn update(&mut self, _msg: Self::Message) -> ShouldRender {
@@ -25,8 +18,7 @@ impl Component for ScoresModel {
     }
 
     fn change(&mut self, props: Self::Properties) -> ShouldRender {
-        self.props = props;
-        true
+        false
     }
 
     fn view(&self) -> VNode {

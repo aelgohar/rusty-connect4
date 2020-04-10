@@ -1,5 +1,5 @@
 [package]
-name = "sidebar"
+name = "frontend"
 version = "0.1.0"
 authors = ["Ahmed Elgohary"]
 edition = "2018"

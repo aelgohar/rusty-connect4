@@ -4,7 +4,6 @@ use yew::{prelude::*, virtual_dom::VNode, Properties};
 use yew_router::{prelude::*, switch::AllowMissing};
 
 pub struct TootOttoHumanModel {
-    props: Props,
     player1: Player,
     player2: Player,
     update_player1_name: Callback<InputData>,
@@ -12,11 +11,6 @@ pub struct TootOttoHumanModel {
     start_game_callback: Callback<ClickEvent>,
     is_game_on: bool,
     disabled: bool,
-}
-
-#[derive(Clone, PartialEq, Properties)]
-pub struct Props {
-    // pub route: Option<ARoute>,
 }
 
 #[derive(Debug)]
@@ -28,7 +22,7 @@ pub enum Msg {
 
 impl Component for TootOttoHumanModel {
     type Message = Msg;
-    type Properties = Props;
+    type Properties = ();
 
     fn create(props: Self::Properties, link: ComponentLink<Self>) -> Self {
         let player1 = Player {
@@ -40,7 +34,6 @@ impl Component for TootOttoHumanModel {
         };
 
         Self {
-            props,
             player1,
             player2,
             update_player1_name: link.callback(|e: InputData| Msg::NewPlayer1(e)),
@@ -65,8 +58,7 @@ impl Component for TootOttoHumanModel {
     }
 
     fn change(&mut self, props: Self::Properties) -> ShouldRender {
-        self.props = props;
-        true
+        false
     }
 
     fn view(&self) -> VNode {
