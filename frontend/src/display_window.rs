@@ -12,7 +12,6 @@ use yew::{prelude::*, virtual_dom::VNode};
 
 pub struct DisplayWindow {
     props: DisplayWindowProps,
-    link: ComponentLink<Self>,
 }
 
 #[derive(Properties, Debug, Clone)]
@@ -26,20 +25,19 @@ impl Component for DisplayWindow {
     type Message = Msg;
     type Properties = DisplayWindowProps;
 
-    fn create(props: Self::Properties, link: ComponentLink<Self>) -> Self {
-        DisplayWindow { props, link }
+    fn create(props: Self::Properties, _link: ComponentLink<Self>) -> Self {
+        DisplayWindow { props }
     }
 
     fn mounted(&mut self) -> ShouldRender {
         false
     }
 
-    fn update(&mut self, msg: Self::Message) -> bool {
+    fn update(&mut self, _msg: Self::Message) -> bool {
         true
     }
 
     fn change(&mut self, props: Self::Properties) -> bool {
-        log::trace!("Change props: {:?}", props);
         self.props = props;
         true
     }
@@ -57,7 +55,6 @@ impl Component for DisplayWindow {
                 "ScoreBoard" => return html! {<ScoreBoardModel/>},
                 "Scores" => return html! {<ScoresModel/>},
                 _ => {
-                    log::trace!("page not found: {}", uri);
                     return html! {"Page not found"};
                 }
             }

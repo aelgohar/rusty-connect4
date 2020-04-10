@@ -1,5 +1,4 @@
 use yew::{prelude::*, virtual_dom::VNode, Properties};
-use yew_router::{prelude::*, switch::AllowMissing};
 
 pub struct HowToTootModel;
 

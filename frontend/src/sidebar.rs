@@ -50,7 +50,6 @@ impl Component for Sidebar {
     }
 
     fn view(&self) -> VNode {
-        log::trace!("example log");
         if let Some(route) = &self.route {
             let active_markdown_uri: Option<String> = self
                 .props
@@ -64,15 +63,12 @@ impl Component for Sidebar {
                     }
                 })
                 .next();
-            log::debug!("active uri: {:?}", active_markdown_uri);
 
-            let list_items = self.props.children.iter().map(|child| {
-                let x = render_page_list_item(child.props, route);
-                if let yew::virtual_dom::VNode::VTag(x) = &x {
-                    log::debug!("{:?}", x.attributes);
-                }
-                x
-            });
+            let list_items = self
+                .props
+                .children
+                .iter()
+                .map(|child| render_page_list_item(child.props, route));
             return html! {
                 <>
                     <nav class="w3-sidenav w3-red w3-collapse w3-top w3-large w3-padding" style="z-index:3;width:350px;font-weight:bold" id="mySidenav">
@@ -99,19 +95,9 @@ impl Component for Sidebar {
 }
 
 fn render_page_list_item(props: PageProps, route: &Route) -> Html {
-    let pm: RouteMatcher = RouteMatcher::try_from(&props.page_url).unwrap();
-    if pm.capture_route_into_map(&route.to_string()).is_ok() {
-        log::debug!("Found an active");
-        return html! {
-            <div class="w3-padding w3-hover-white">
-                <RouterAnchor<String> route=props.page_url.clone()> {&props.title} </RouterAnchor<String>>
-            </div>
-        };
-    } else {
-        return html! {
-            <div class="w3-padding w3-hover-white">
-                <RouterAnchor<String> route=props.page_url.clone()> {&props.title} </RouterAnchor<String>>
-            </div>
-        };
-    }
+    return html! {
+        <div class="w3-padding w3-hover-white">
+            <RouterAnchor<String> route=props.page_url.clone()> {&props.title} </RouterAnchor<String>>
+        </div>
+    };
 }

@@ -14,6 +14,7 @@ mod display_window;
 mod page;
 mod player;
 mod sidebar;
+mod toot_canvas;
 
 #[macro_use] extern crate log;
 extern crate web_logger;

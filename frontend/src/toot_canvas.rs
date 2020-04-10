@@ -1,6 +1,8 @@
 use crate::player::Player;
+use std::iter::FromIterator;
 use stdweb::traits::*;
 use stdweb::unstable::TryInto;
+use stdweb::web::event::{MouseMoveEvent, ResizeEvent};
 use stdweb::web::html_element::CanvasElement;
 use stdweb::web::FillRule;
 use stdweb::web::{document, window, CanvasRenderingContext2d};
@@ -15,7 +17,7 @@ macro_rules! enclose {
     };
 }
 
-pub struct CanvasModel {
+pub struct TootCanvasModel {
     props: Props,
     canvas_id: String,
     canvas: Option<CanvasElement>,
@@ -23,10 +25,12 @@ pub struct CanvasModel {
     cbk: Callback<ClickEvent>,
     animate_cbk: Callback<(usize, i64, usize, usize, bool)>,
     map: Vec<Vec<i64>>,
+    dummy_map: Vec<Vec<char>>,
     current_move: i64,
     won: bool,
     paused: bool,
     reject_click: bool,
+    letter: String,
 }
 
 #[derive(Clone, PartialEq, Properties)]
@@ -35,6 +39,7 @@ pub struct Props {
     pub player2: Option<String>,
     pub canvas_id: Option<String>,
     pub game_done_cbk: Callback<i64>,
+    pub letter: String,
 }
 
 pub enum Message {
@@ -42,9 +47,10 @@ pub enum Message {
     AnimateCallback((usize, i64, usize, usize, bool)),
 }
 
-impl CanvasModel {
+impl TootCanvasModel {
     pub fn reset(&mut self) {
         self.map = vec![vec![0; 7]; 6];
+        self.dummy_map = vec![vec!['a'; 7]; 6];
         self.current_move = 0;
         self.paused = false;
         self.won = false;
@@ -55,50 +61,7 @@ impl CanvasModel {
 
     #[inline]
     pub fn check_state(&self, state: &Vec<Vec<i64>>) -> (i64, i64) {
-        let mut win_val = 0;
-        let mut chain_val = 0;
-        let (mut temp_r, mut temp_b, mut temp_br, mut temp_tr) = (0, 0, 0, 0);
-        for i in 0..6 {
-            for j in 0..7 {
-                temp_r = 0;
-                temp_b = 0;
-                temp_br = 0;
-                temp_tr = 0;
-                for k in 0..=3 {
-                    if j + k < 7 {
-                        temp_r += state[i][j + k];
-                    }
-
-                    if i + k < 6 {
-                        temp_b += state[i + k][j];
-                    }
-
-                    if i + k < 6 && j + k < 7 {
-                        temp_br += state[i + k][j + k];
-                    }
-
-                    if i >= k && j + k < 7 {
-                        temp_tr += state[i - k][j + k];
-                    }
-                }
-                chain_val += temp_r * temp_r * temp_r;
-                chain_val += temp_b * temp_b * temp_b;
-                chain_val += temp_br * temp_br * temp_br;
-                chain_val += temp_tr * temp_tr * temp_tr;
-
-                if temp_r.abs() == 4 {
-                    win_val = temp_r;
-                } else if temp_b.abs() == 4 {
-                    win_val = temp_b;
-                } else if temp_br.abs() == 4 {
-                    win_val = temp_br;
-                } else if temp_tr.abs() == 4 {
-                    win_val = temp_tr;
-                }
-            }
-        }
-
-        return (win_val, chain_val);
+        return (0, 0);
     }
 
     pub fn value(
@@ -225,7 +188,7 @@ impl CanvasModel {
         return (v, new_move);
     }
 
-    // get random int 0 <= x <= val
+    #[inline]
     pub fn get_random_val(&self, val: usize) -> usize {
         let rand = js! { return Math.random(); };
         let base: f64 = rand.try_into().unwrap();
@@ -234,6 +197,7 @@ impl CanvasModel {
         return (base * max_val).floor() as usize;
     }
 
+    #[inline]
     pub fn choose(&self, choice: &Vec<usize>) -> i64 {
         let index = self.get_random_val(choice.len());
         return choice[index] as i64;
@@ -247,10 +211,8 @@ impl CanvasModel {
         let choice = val_choice.1;
 
         self.paused = false;
-        // TODO: Add rejectclick callback
         let mut done = self.action(choice as usize, true);
 
-        // TODO: Add rejectclick callback
         while done < 0 {
             log::info!("Using random agent");
             let random_choice = self.get_random_val(7);
@@ -258,6 +220,7 @@ impl CanvasModel {
         }
     }
 
+    #[inline]
     pub fn fill_map(&self, new_state: &Vec<Vec<i64>>, column: usize, value: i64) -> Vec<Vec<i64>> {
         let mut temp_map = new_state.clone();
         if temp_map[0][column] != 0 || column > 6 {
@@ -282,26 +245,31 @@ impl CanvasModel {
         return temp_map;
     }
 
-    pub fn draw_circle(&self, x: u32, y: u32, fill: &str, stroke: &str) {
-        self.ctx.as_ref().unwrap().save();
-        self.ctx.as_ref().unwrap().set_fill_style_color(&fill);
-        self.ctx.as_ref().unwrap().set_stroke_style_color(&stroke);
-        self.ctx.as_ref().unwrap().begin_path();
-        self.ctx
-            .as_ref()
-            .unwrap()
-            .arc(x as f64, y as f64, 25.0, 0.0, 2.0 * 3.14159265359, false);
-        self.ctx.as_ref().unwrap().fill(FillRule::NonZero);
-        self.ctx.as_ref().unwrap().restore();
+    #[inline]
+    pub fn draw_circle(&self, x: u32, y: u32, fill: &str, stroke: &str, text: &str) {
+        let context = self.ctx.as_ref().unwrap();
+
+        context.save();
+        context.set_fill_style_color(&fill);
+        context.set_stroke_style_color(&stroke);
+        context.begin_path();
+        context.arc(x as f64, y as f64, 25.0, 0.0, 2.0 * 3.14159265359, false);
+        context.fill(FillRule::NonZero);
+        context.set_font("bold 25px serif");
+        context.restore();
+        context.fill_text(text, x as f64 - 8.5, y as f64 + 8.0, None);
     }
 
+    #[inline]
     pub fn draw_mask(&self) {
-        self.ctx.as_ref().unwrap().save();
-        self.ctx.as_ref().unwrap().set_fill_style_color("#00bfff");
-        self.ctx.as_ref().unwrap().begin_path();
+        let context = self.ctx.as_ref().unwrap();
+
+        context.save();
+        context.set_fill_style_color("#00bfff");
+        context.begin_path();
         for y in 0..6 {
             for x in 0..7 {
-                self.ctx.as_ref().unwrap().arc(
+                context.arc(
                     (75 * x + 100) as f64,
                     (75 * y + 50) as f64,
                     25.0,
@@ -309,79 +277,99 @@ impl CanvasModel {
                     2.0 * 3.14159265359,
                     false,
                 );
-                self.ctx.as_ref().unwrap().rect(
-                    (75 * x + 150) as f64,
-                    (75 * y) as f64,
-                    -100.0,
-                    100.0,
-                );
+                context.rect((75 * x + 150) as f64, (75 * y) as f64, -100.0, 100.0);
             }
         }
-        self.ctx.as_ref().unwrap().fill(FillRule::NonZero);
-        self.ctx.as_ref().unwrap().restore();
+        context.fill(FillRule::NonZero);
+        context.restore();
     }
 
+    #[inline]
     pub fn draw(&self) {
         for y in 0..6 {
             for x in 0..7 {
+                let mut text = "";
                 let mut fg_color = "transparent";
-                if self.map[y][x] >= 1 {
-                    fg_color = "#ff4136";
-                } else if self.map[y][x] <= -1 {
-                    fg_color = "#ffff00";
+                if self.map[y][x] >= 1 && self.dummy_map[y][x] == 'T' {
+                    fg_color = "#99ffcc";
+                    text = "T";
+                } else if self.map[y][x] >= 1 && self.dummy_map[y][x] == 'O' {
+                    fg_color = "#99ffcc";
+                    text = "O";
+                } else if self.map[y][x] <= -1 && self.dummy_map[y][x] == 'T' {
+                    fg_color = "#ffff99";
+                    text = "T";
+                } else if self.map[y][x] <= -1 && self.dummy_map[y][x] == 'O' {
+                    fg_color = "#ffff99";
+                    text = "O";
                 }
+
                 self.draw_circle(
                     (75 * x + 100) as u32,
                     (75 * y + 50) as u32,
                     &fg_color,
                     "black",
+                    text,
                 );
             }
         }
     }
 
+    #[inline]
     pub fn check(&mut self) {
-        let (mut temp_r, mut temp_b, mut temp_br, mut temp_tr) = (0, 0, 0, 0);
+        let (mut temp_r, mut temp_b, mut temp_br, mut temp_tr) =
+            (Vec::new(), Vec::new(), Vec::new(), Vec::new());
         for i in 0..6 {
             for j in 0..7 {
-                temp_r = 0;
-                temp_b = 0;
-                temp_br = 0;
-                temp_tr = 0;
+                temp_r = vec!['a'; 4];
+                temp_b = vec!['a'; 4];
+                temp_br = vec!['a'; 4];
+                temp_tr = vec!['a'; 4];
                 for k in 0..=3 {
                     if j + k < 7 {
-                        temp_r += self.map[i][j + k];
+                        temp_r[k] = self.dummy_map[i][j + k];
                     }
 
                     if i + k < 6 {
-                        temp_b += self.map[i + k][j];
+                        temp_b[k] = self.dummy_map[i + k][j];
                     }
 
                     if i + k < 6 && j + k < 7 {
-                        temp_br += self.map[i + k][j + k];
+                        temp_br[k] = self.dummy_map[i + k][j + k];
                     }
 
                     if i >= k && j + k < 7 {
-                        temp_tr += self.map[i - k][j + k];
+                        temp_tr[k] = self.dummy_map[i - k][j + k];
                     }
                 }
-                if temp_r.abs() == 4 {
-                    self.win(temp_r);
-                } else if temp_b.abs() == 4 {
-                    self.win(temp_b);
-                } else if temp_br.abs() == 4 {
-                    self.win(temp_br);
-                } else if temp_tr.abs() == 4 {
-                    self.win(temp_tr);
+                let toot = "TOOT";
+                let otto = "OTTO";
+                if String::from_iter(temp_r.clone()) == toot {
+                    self.win(1);
+                } else if String::from_iter(temp_r) == otto {
+                    self.win(-1);
+                } else if String::from_iter(temp_b.clone()) == toot {
+                    self.win(1);
+                } else if String::from_iter(temp_b) == otto {
+                    self.win(-1);
+                } else if String::from_iter(temp_br.clone()) == toot {
+                    self.win(-1);
+                } else if String::from_iter(temp_br) == otto {
+                    self.win(1);
+                } else if String::from_iter(temp_tr.clone()) == toot {
+                    self.win(-1);
+                } else if String::from_iter(temp_tr) == otto {
+                    self.win(-1);
                 }
             }
         }
         // check if draw
-        if (self.current_move == 42) && (!self.won) {
+        if self.current_move == 42 && !self.won {
             self.win(0);
         }
     }
 
+    #[inline]
     pub fn clear(&self) {
         self.ctx.as_ref().unwrap().clear_rect(
             0.0,
@@ -391,15 +379,17 @@ impl CanvasModel {
         );
     }
 
+    #[inline]
     pub fn on_region(&self, coord: f64, x: f64, radius: f64) -> bool {
         return ((coord - x) * (coord - x) <= radius * radius);
     }
 
+    #[inline]
     pub fn player_move(&self) -> i64 {
-        if self.current_move % 2 == 0 {
-            return 1;
+        match self.current_move % 2 {
+            0 => 1,
+            _ => -1,
         }
-        return -1;
     }
 
     pub fn animate(
@@ -412,11 +402,11 @@ impl CanvasModel {
     ) {
         let mut fg_color = "transparent";
         if current_move >= 1 {
-            fg_color = "#ff4136";
+            fg_color = "#99ffcc";
         } else if current_move <= -1 {
-            fg_color = "#ffff00";
+            fg_color = "#ffff99";
         }
-
+        //TODO GET TEXT FROM MAIN FRAME
         if to_row * 75 >= cur_pos {
             self.clear();
             self.draw();
@@ -425,6 +415,7 @@ impl CanvasModel {
                 (cur_pos + 50) as u32,
                 &fg_color,
                 "black",
+                &self.letter,
             );
             self.draw_mask();
 
@@ -434,6 +425,7 @@ impl CanvasModel {
             }));
         } else {
             self.map[to_row][column] = self.player_move();
+            self.dummy_map[to_row][column] = self.letter.chars().next().unwrap();
             self.current_move += 1;
             self.draw();
             self.check();
@@ -445,6 +437,7 @@ impl CanvasModel {
         }
     }
 
+    #[inline(always)]
     pub fn action(&mut self, column: usize, mode: bool) -> i64 {
         if self.paused || self.won {
             return 0;
@@ -473,6 +466,7 @@ impl CanvasModel {
         return 1;
     }
 
+    #[inline]
     pub fn win(&mut self, player: i64) {
         self.paused = true;
         self.won = true;
@@ -489,31 +483,31 @@ impl CanvasModel {
 
         let to_print = format!("{} - Click on game board to reset", msg);
 
-        self.ctx.as_ref().unwrap().save();
-        self.ctx.as_ref().unwrap().set_font("14pt sans-serif");
-        self.ctx.as_ref().unwrap().set_fill_style_color("#111");
-        self.ctx
-            .as_ref()
-            .unwrap()
-            .fill_text(&to_print, 150.0, 20.0, None);
+        let context = self.ctx.as_ref().unwrap();
+        context.save();
+        context.set_font("14pt sans-serif");
+        context.set_fill_style_color("#111");
+        context.fill_text(&to_print, 150.0, 20.0, None);
 
         // TODO Some backend
         // postService.save($scope.newGame, function(){
         //     console.log("succesfully saved");
         // });
 
-        self.ctx.as_ref().unwrap().restore();
+        context.restore();
     }
 }
 
-impl Component for CanvasModel {
+impl Component for TootCanvasModel {
     type Message = Message;
     type Properties = Props;
 
     fn create(props: Self::Properties, link: ComponentLink<Self>) -> Self {
         let canvas_id = props.canvas_id.clone().unwrap();
+        let letter = props.letter.clone();
 
         let mut map: Vec<Vec<i64>> = vec![vec![0; 7]; 6];
+        let mut dummy_map: Vec<Vec<char>> = vec![vec!['a'; 7]; 6];
 
         Self {
             props,
@@ -524,10 +518,12 @@ impl Component for CanvasModel {
             animate_cbk: link
                 .callback(|e: (usize, i64, usize, usize, bool)| Message::AnimateCallback(e)),
             map,
+            dummy_map,
             current_move: 0,
             paused: false,
             won: false,
             reject_click: false,
+            letter,
         }
     }
 
@@ -595,6 +591,7 @@ impl Component for CanvasModel {
 
     fn change(&mut self, props: Self::Properties) -> ShouldRender {
         self.props = props;
+        self.letter = self.props.letter.clone();
         true
     }
 }

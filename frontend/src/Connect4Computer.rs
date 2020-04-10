@@ -1,7 +1,6 @@
 use crate::canvas::CanvasModel;
 use crate::player::Player;
 use yew::{prelude::*, virtual_dom::VNode, Properties};
-use yew_router::{prelude::*, switch::AllowMissing};
 
 pub struct Connect4ComputerModel {
     player: Player,
@@ -46,11 +45,11 @@ impl Component for Connect4ComputerModel {
                 self.is_game_on = true;
                 self.disabled = true;
                 self.display_state = "block".to_string();
-            } 
+            }
             Msg::EndGame => {
                 self.is_game_on = false;
                 self.disabled = false;
-                self.display_state = "none".to_string();
+                // self.display_state = "none".to_string();
             }
         }
 
@@ -91,7 +90,7 @@ impl Component for Connect4ComputerModel {
                 <h4>{format!("New Game: {} Vs Computer", self.player.value)}</h4>
                 <small>{format!("(Disc Colors: {} - ", self.player.value)} <b>{"Red"}</b> {"   and    Computer - "} <b>{"Yellow)"}</b></small>
                 <br></br>
-                <CanvasModel player1 = self.player.value.clone(), player2 = "Computer" game_done_cbk=&self.end_game_callback/>
+                <CanvasModel  canvas_id = "connect_computer" player1 = self.player.value.clone(), player2 = "Computer" game_done_cbk=&self.end_game_callback/>
             </div>
             </>
         }
