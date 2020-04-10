@@ -74,8 +74,8 @@ fn rocket() -> Result<rocket::Rocket, mongodb::error::Error> {
     Ok(rocket::ignite()
         .manage(collection)
         .mount("/", routes![
-            index, 
-            files, 
+            index,
+            files,
             games::get, 
             games::post,
         ]))

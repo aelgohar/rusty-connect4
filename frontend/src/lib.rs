@@ -1,4 +1,4 @@
-#![recursion_limit = "100000"]
+#![recursion_limit = "512"]
 #![allow(warnings)]
 mod Connect4Computer;
 mod Connect4Human;
@@ -14,6 +14,9 @@ mod display_window;
 mod page;
 mod player;
 mod sidebar;
+
+#[macro_use] extern crate log;
+extern crate web_logger;
 
 pub use crate::{
     canvas::CanvasModel,

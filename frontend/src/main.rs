@@ -1,6 +1,3 @@
-#[macro_use]
-extern crate log;
-
 use sidebar::{CanvasModel, Page, Sidebar};
 use stdweb::traits::*;
 use stdweb::unstable::TryInto;
@@ -10,15 +7,6 @@ use stdweb::web::FillRule;
 use stdweb::web::{document, window, CanvasRenderingContext2d};
 use yew::prelude::*;
 use yew::virtual_dom::VNode;
-
-macro_rules! enclose {
-    ( ($( $x:ident ),*) $y:expr ) => {
-        {
-            $(let $x = $x.clone();)*
-            $y
-        }
-    };
-}
 
 fn main() {
     yew::initialize();
@@ -71,7 +59,7 @@ impl Component for Model {
         html! {
             <Sidebar>
                 <Page
-                    uri="Connect4Computer"
+                    uri="HowToConnect4"
                     page_url="/#HowToConnect4"
                     title="How to Play Connect4"
                 />
