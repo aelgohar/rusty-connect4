@@ -1,11 +1,10 @@
-use frontend::{CanvasModel, Page, Sidebar};
 use stdweb::traits::*;
 use stdweb::unstable::TryInto;
 use stdweb::web::event::{MouseMoveEvent, ResizeEvent};
 use stdweb::web::html_element::CanvasElement;
 use stdweb::web::FillRule;
 use stdweb::web::{document, window, CanvasRenderingContext2d};
-use sidebar::{Page, Sidebar};
+use frontend::{Page, Sidebar};
 use yew::prelude::*;
 use yew::virtual_dom::VNode;
 
