@@ -5,22 +5,34 @@ use yew::format::{Json, Nothing};
 use yew::services::fetch::{FetchService, FetchTask, Request, Response};
 use yew::{html, Component, ComponentLink, Html, ShouldRender};
 
-pub struct ScoreBoardModel {
-    fetch_service: FetchService,
-    link: ComponentLink<ScoreBoardModel>,
-    data: Option<Vec<Game>>,
-    ft: Option<FetchTask>,
+pub enum Msg {
+    FetchReady(Result<Vec<Game>,Error>),
+    Ignore,
+}
+
+impl From<()> for Msg {
+    fn from(parameter: ()) -> Self {
+        error!("Tried to create message from unit type!");
+        Msg::Ignore
+    }
 }
 
 #[derive(Serialize, Deserialize, Debug)]
 #[allow(non_snake_case)]
 pub struct Game {
-    gameNumber: String,
-    gameType: String,
-    Player1Name: String,
-    Player2Name: String,
-    WinnerName: String,
-    GameDate: u64,
+    pub gameNumber: String,
+    pub gameType: String,
+    pub Player1Name: String,
+    pub Player2Name: String,
+    pub WinnerName: String,
+    pub GameDate: u64,
+}
+
+pub struct ScoreBoardModel {
+    fetch_service: FetchService,
+    fetch_task: Option<FetchTask>,
+    link: ComponentLink<ScoreBoardModel>,
+    data: Option<Vec<Game>>,
 }
 
 impl ScoreBoardModel {
@@ -62,20 +74,7 @@ impl ScoreBoardModel {
             }
         );
         let request = Request::get("/games").body(Nothing).unwrap();
-        info!("I be fetching");
         self.fetch_service.fetch(request, callback).unwrap()
-    }
-}
-
-pub enum Msg {
-    FetchReady(Result<Vec<Game>,Error>),
-    Ignore,
-}
-
-impl From<()> for Msg {
-    fn from(parameter: ()) -> Self {
-        error!("Tried to create message from unit type!");
-        Msg::Ignore
     }
 }
 
@@ -86,11 +85,11 @@ impl Component for ScoreBoardModel {
     fn create(props: Self::Properties, link: ComponentLink<Self>) -> Self {
         let mut model = ScoreBoardModel {
             fetch_service: FetchService::new(),
+            fetch_task: None,
             link,
             data: None,
-            ft: None,
         };
-        model.ft = Some(model.fetch_games());
+        model.fetch_task = Some(model.fetch_games());
         model
     }
 
@@ -98,7 +97,7 @@ impl Component for ScoreBoardModel {
         match msg {
             Msg::FetchReady(response) => {
                 self.data = response.map(|data| data).ok();
-                self.ft = None
+                self.fetch_task = None;
             }
             Msg::Ignore => (),
         }
