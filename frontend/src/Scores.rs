@@ -1,3 +1,5 @@
+use std::collections::HashMap;
+
 use anyhow::Error;
 use serde::{Deserialize, Serialize};
 use stdweb::web::Date;
@@ -27,7 +29,7 @@ pub struct ScoresModel {
 }
 
 impl ScoresModel {
-    fn view_totals(&self) -> Html {
+    fn view_total_games(&self) -> Html {
         if let Some(ref games) = self.data {
             html! {
                 <tr>
@@ -64,7 +66,30 @@ impl ScoresModel {
 
     fn view_total_wins(&self) -> Html {
         if let Some(ref games) = self.data {
-            html! {}
+            // aggregate total wins for each player
+            let mut counts = HashMap::new();
+            for game in games {
+                *counts.entry(game.WinnerName.as_str()).or_insert(0) += 1;
+            }
+
+            // sort by win count
+            let mut counts: Vec<_> = counts.iter().collect();
+            counts.sort_by(|a,b| {
+                a.1.partial_cmp(b.1).unwrap()
+            });
+
+            html! {
+                
+                { counts.iter().enumerate().map(|(i, (player, count))| {
+                    html! {
+                        <tr>
+                        <td>{ i + 1 }</td>
+                        <td>{ player }</td>
+                        <td>{ count }</td>
+                        </tr>
+                    }
+                }).collect::<Html>() }
+            }
         } else {
             html! {}
         }
@@ -129,7 +154,7 @@ impl Component for ScoresModel {
                         <th>{"Games Against Computer"}</th>
                         <th>{"Games Computer Won"}</th>
                     </tr>
-                    { self.view_totals() }
+                    { self.view_total_games() }
                 </table>
             <br></br>
             <div><h4>{"Details of Games Won by Computer"}</h4></div>
@@ -154,12 +179,7 @@ impl Component for ScoresModel {
                         <th>{"Winner or Draw"}</th>
                         <th>{"No. of Wins"}</th>
                     </tr>
-                    //TODO
-                    // <tr ng-repeat="game in games | groupBy:'WinnerName' | toArray:true | orderBy: $value.length | reverse">
-                    //      <td>{{ $index + 1 }}</td>
-                    //      <td>{{game.$key}}</td>
-                    //      <td>{{game.length}}</td>
-                    // </tr>
+                    { self.view_total_wins() }
                 </table>
             </div>
             </div>
