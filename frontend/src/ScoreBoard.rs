@@ -1,61 +1,131 @@
-use yew::{prelude::*, virtual_dom::VNode, Properties};
+use anyhow::Error;
+use serde::{Deserialize, Serialize};
+use stdweb::web::Date;
+use yew::format::{Json, Nothing};
+use yew::services::fetch::{FetchService, FetchTask, Request, Response};
+use yew::{html, Component, ComponentLink, Html, ShouldRender};
+
+pub enum Msg {
+    FetchReady(Result<Vec<Game>,Error>),
+    Ignore,
+}
+
+impl From<()> for Msg {
+    fn from(parameter: ()) -> Self {
+        error!("Tried to create message from unit type!");
+        Msg::Ignore
+    }
+}
+
+#[derive(Serialize, Deserialize, Debug)]
+#[allow(non_snake_case)]
+pub struct Game {
+    pub gameNumber: String,
+    pub gameType: String,
+    pub Player1Name: String,
+    pub Player2Name: String,
+    pub WinnerName: String,
+    pub GameDate: u64,
+}
 
 pub struct ScoreBoardModel {
-    props: Props,
+    fetch_service: FetchService,
+    fetch_task: Option<FetchTask>,
+    link: ComponentLink<ScoreBoardModel>,
+    data: Option<Vec<Game>>,
 }
 
-#[derive(Clone, PartialEq, Properties)]
-pub struct Props {
-    // pub route: Option<ARoute>,
-}
+impl ScoreBoardModel {
+    fn view_data(&self) -> Html {
+        if let Some(ref games) = self.data {
+            html! {
+                { games.iter().enumerate().map(|(i, game)| {
+                    let date = Date::from_time(game.GameDate as f64);
+                    html! {
+                        <tr>
+                        <td>{ i + 1 }</td>
+                        <td>{ game.gameType.as_str() }</td>
+                        <td>{ game.Player1Name.as_str() }</td>
+                        <td>{ game.Player2Name.as_str() }</td>
+                        <td>{ game.WinnerName.as_str() }</td>
+                        <td>{ &Date::from_time(game.GameDate as f64).to_string()[0..24] }</td>
+                        </tr>
+                    }
+                }).collect::<Html>() }
+            }
+        }
+        else {
+            html! {
+                <tr><td colspan="6">{"Loading..."}</td></tr>
+            }
+        }
+    }
 
-pub enum Msg {}
+    fn fetch_games(&mut self) -> FetchTask {
+        let callback = self.link.callback(
+            move |response: Response<Json<Result<Vec<Game>, Error>>>| {
+                let (meta, Json(data)) = response.into_parts();
+                if meta.status.is_success() {
+                    Msg::FetchReady(data)
+                } else {
+                    error!("Failed to fetch games");
+                    Msg::Ignore
+                }
+            }
+        );
+        let request = Request::get("/games").body(Nothing).unwrap();
+        self.fetch_service.fetch(request, callback).unwrap()
+    }
+}
 
 impl Component for ScoreBoardModel {
     type Message = Msg;
-    type Properties = Props;
+    type Properties = ();
 
-    fn create(props: Self::Properties, _link: ComponentLink<Self>) -> Self {
-        ScoreBoardModel { props }
+    fn create(props: Self::Properties, link: ComponentLink<Self>) -> Self {
+        let mut model = ScoreBoardModel {
+            fetch_service: FetchService::new(),
+            fetch_task: None,
+            link,
+            data: None,
+        };
+        model.fetch_task = Some(model.fetch_games());
+        model
     }
 
-    fn update(&mut self, _msg: Self::Message) -> ShouldRender {
+    fn update(&mut self, msg: Self::Message) -> ShouldRender {
+        match msg {
+            Msg::FetchReady(response) => {
+                self.data = response.map(|data| data).ok();
+                self.fetch_task = None;
+            }
+            Msg::Ignore => (),
+        }
         true
     }
 
     fn change(&mut self, props: Self::Properties) -> ShouldRender {
-        self.props = props;
-        true
+        false
     }
 
-    fn view(&self) -> VNode {
+    fn view(&self) -> Html {
         html! {
             <div class="w3-container" id="services" style="margin-top:75px">
-                <h5 class="w3-xxxlarge w3-text-red"><b>{"Game History"}</b></h5>
-                <hr style="width:50px;border:5px solid red" class="w3-round"> </hr>
-
-                <div id="game-stream">
-                <table>
-                    <tr>
-                        <th>{"Game-ID"}</th>
-                        <th>{"Game Type"}</th>
-                        <th>{"Player1"}</th>
-                        <th>{"Player2"}</th>
-                        <th>{"Winner"}</th>
-                        <th>{"When Played"}</th>
-                    </tr>
-                    // <tr ng-repeat="game in games">
-                    //     <td>{{ $index + 1 }}</td>
-                    //     <td>{{game.gameType}}</td>
-                    //     <td>{{game.Player1Name}}</td>
-                    //     <td>{{game.Player2Name}}</td>
-                    //     <td>{{game.WinnerName}}</td>
-                    //     <td>{{game.GameDate | date:"h:mma 'on' MMM d, y"}}</td>
-                    // </tr>
-                    // TODO: backend probably
-                </table>
-
-                </div>
+            <h5 class="w3-xxxlarge w3-text-red"><b>{"Game History"}</b></h5>
+            <hr style="width:50px;border:5px solid red" class="w3-round"> </hr>
+            <div id="game-stream">
+            <table>
+                <tr>
+                    <th>{"Game-ID"}</th>
+                    <th>{"Game Type"}</th>
+                    <th>{"Player1"}</th>
+                    <th>{"Player2"}</th>
+                    <th>{"Winner"}</th>
+                    <th>{"When Played"}</th>
+                </tr>
+                { self.view_data() }
+            </table>
+            </div>
             </div>
         }
     }

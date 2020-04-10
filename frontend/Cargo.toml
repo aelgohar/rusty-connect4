@@ -1,14 +1,16 @@
 [package]
-name = "sidebar"
+name = "frontend"
 version = "0.1.0"
 authors = ["Ahmed Elgohary"]
 edition = "2018"
 
 [dependencies]
+anyhow = "1.0.28"
 yew = {version = "0.14.0", features = ["services", "agent", "std_web"]}
 yew-router = {version = "0.11.0", features = ["std_web"]}
 web_logger = "0.2"
 log = "0.4.8"
 pulldown-cmark = "0.6.1"
 stdweb = "0.4.20"
+serde = "1.0.105"
 rand = "0.7"

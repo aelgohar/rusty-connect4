@@ -1,22 +1,13 @@
 use yew::{prelude::*, virtual_dom::VNode, Properties};
 
-pub struct HowToConnect4Model {
-    props: Props,
-}
-
-#[derive(Clone, PartialEq, Properties)]
-pub struct Props {
-    // pub route: Option<ARoute>,
-}
-
-pub enum Msg {}
+pub struct HowToConnect4Model;
 
 impl Component for HowToConnect4Model {
-    type Message = Msg;
-    type Properties = Props;
+    type Message = ();
+    type Properties = ();
 
     fn create(props: Self::Properties, _link: ComponentLink<Self>) -> Self {
-        HowToConnect4Model { props }
+        HowToConnect4Model
     }
 
     fn update(&mut self, _msg: Self::Message) -> ShouldRender {
@@ -24,8 +15,7 @@ impl Component for HowToConnect4Model {
     }
 
     fn change(&mut self, props: Self::Properties) -> ShouldRender {
-        self.props = props;
-        true
+        false
     }
 
     fn view(&self) -> VNode {
