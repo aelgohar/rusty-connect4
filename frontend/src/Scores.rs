@@ -61,7 +61,7 @@ impl ScoresModel {
         if let Some(ref games) = self.data {
             // aggregate total wins for each player
             let mut counts = HashMap::new();
-            for game in games {
+            for game in games.iter().filter(|game| game.WinnerName != "Draw") {
                 *counts.entry(game.WinnerName.as_str()).or_insert(0) += 1;
             }
 
