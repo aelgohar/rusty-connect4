@@ -1,4 +1,5 @@
-use crate::player::Player;
+use anyhow::Error;
+use serde_json::json;
 use std::iter::FromIterator;
 use stdweb::traits::*;
 use stdweb::unstable::TryInto;
@@ -6,7 +7,13 @@ use stdweb::web::event::{MouseMoveEvent, ResizeEvent};
 use stdweb::web::html_element::CanvasElement;
 use stdweb::web::FillRule;
 use stdweb::web::{document, window, CanvasRenderingContext2d};
+use stdweb::web::Date;
+use yew::format::Json;
+use yew::services::fetch::{FetchService, FetchTask, Request, Response};
 use yew::{prelude::*, virtual_dom::VNode, Properties};
+
+use crate::player::Player;
+use crate::ScoreBoard::Game;
 
 macro_rules! enclose {
     ( ($( $x:ident ),*) $y:expr ) => {
@@ -31,6 +38,9 @@ pub struct TootCanvasModel {
     paused: bool,
     reject_click: bool,
     letter: String,
+    fetch_service: FetchService,
+    fetch_task: Option<FetchTask>,
+    link: ComponentLink<TootCanvasModel>,
 }
 
 #[derive(Clone, PartialEq, Properties)]
@@ -45,6 +55,7 @@ pub struct Props {
 pub enum Message {
     Click(ClickEvent),
     AnimateCallback((usize, i64, usize, usize, bool)),
+    Ignore
 }
 
 impl TootCanvasModel {
@@ -489,10 +500,37 @@ impl TootCanvasModel {
         context.set_fill_style_color("#111");
         context.fill_text(&to_print, 150.0, 20.0, None);
 
-        // TODO Some backend
-        // postService.save($scope.newGame, function(){
-        //     console.log("succesfully saved");
-        // });
+        // construct game to post
+        let game = Game {
+            gameNumber: String::new(),
+            gameType: String::from("TOOT-OTTO"),
+            Player1Name: self.props.player1.as_ref().unwrap().clone(),
+            Player2Name: self.props.player2.as_ref().unwrap().clone(),
+            WinnerName: if player > 0 {
+                self.props.player1.as_ref().unwrap().clone()
+            } else if player < 0 {
+                self.props.player2.as_ref().unwrap().clone()
+            } else {
+                String::from("Draw")
+            },
+            GameDate: Date::now() as u64,
+        };
+
+        // construct callback
+        let callback = self.link.callback(
+            move |response: Response<Result<String, Error>>| {
+                info!("successfully saved!");
+                Message::Ignore
+            }
+        );
+
+        // construct request
+        let request = Request::post("/games")
+            .header("Content-Type", "application/json")
+            .body(Json(&game)).unwrap();
+
+        // send the request
+        self.fetch_task = self.fetch_service.fetch(request, callback).ok();
 
         context.restore();
     }
@@ -524,6 +562,9 @@ impl Component for TootCanvasModel {
             won: false,
             reject_click: false,
             letter,
+            fetch_service: FetchService::new(),
+            fetch_task: None,
+            link,
         }
     }
 
@@ -559,6 +600,7 @@ impl Component for TootCanvasModel {
             Message::AnimateCallback((a, b, c, d, e)) => {
                 self.animate(a, b, c, d, e);
             }
+            Message::Ignore => (),
         };
 
         true
