@@ -19,6 +19,21 @@
     table tr:nth-child(even) {
         background-color: #ffffff;
     }
+
+    body {
+        padding-top:70px;
+        width: 100%;
+        height: 100%;
+        width: 100%;
+        height: 100%;
+        font-family: "Source Sans Pro","Helvetica Neue",Helvetica,Arial,sans-serif;
+    }
+
+    html {
+    overflow: scroll;
+    }
+
+
 </style>
 
 <body ng-app="Connect4App">
@@ -45,7 +60,7 @@
         </script>
     </head>
 
-    <body style="margin: 0; padding: 0; height: 100vh; overflow: hidden">
+    <body style="margin: 0; padding: 0; height: 100vh; overflow: auto">
         <!--This is required to avoid a runtime error at startup-->
         <script>Module = {};</script>
         <script src="/frontend.js"></script>

@@ -16,10 +16,12 @@ mod player;
 mod sidebar;
 mod toot_canvas;
 
-#[macro_use] extern crate log;
+#[macro_use]
+extern crate log;
 extern crate web_logger;
 
-#[macro_use] extern crate stdweb;
+#[macro_use]
+extern crate stdweb;
 
 pub use crate::{
     canvas::CanvasModel,

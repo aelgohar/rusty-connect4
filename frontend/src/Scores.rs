@@ -10,7 +10,7 @@ use yew::{html, Component, ComponentLink, Html, ShouldRender};
 use crate::ScoreBoard::Game;
 
 pub enum Msg {
-    FetchReady(Result<Vec<Game>,Error>),
+    FetchReady(Result<Vec<Game>, Error>),
     Ignore,
 }
 
@@ -74,12 +74,10 @@ impl ScoresModel {
 
             // sort by win count
             let mut counts: Vec<_> = counts.iter().collect();
-            counts.sort_by(|a,b| {
-                a.1.partial_cmp(b.1).unwrap()
-            });
+            counts.sort_by(|a, b| a.1.partial_cmp(b.1).unwrap());
 
             html! {
-                
+
                 { counts.iter().enumerate().map(|(i, (player, count))| {
                     html! {
                         <tr>
@@ -96,17 +94,17 @@ impl ScoresModel {
     }
 
     fn fetch_games(&mut self) -> FetchTask {
-        let callback = self.link.callback(
-            move |response: Response<Json<Result<Vec<Game>, Error>>>| {
-                let (meta, Json(data)) = response.into_parts();
-                if meta.status.is_success() {
-                    Msg::FetchReady(data)
-                } else {
-                    error!("Failed to fetch games");
-                    Msg::Ignore
-                }
-            }
-        );
+        let callback =
+            self.link
+                .callback(move |response: Response<Json<Result<Vec<Game>, Error>>>| {
+                    let (meta, Json(data)) = response.into_parts();
+                    if meta.status.is_success() {
+                        Msg::FetchReady(data)
+                    } else {
+                        error!("Failed to fetch games");
+                        Msg::Ignore
+                    }
+                });
         let request = Request::get("/games").body(Nothing).unwrap();
         self.fetch_service.fetch(request, callback).unwrap()
     }
