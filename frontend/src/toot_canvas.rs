@@ -30,7 +30,7 @@ pub struct TootCanvasModel {
     canvas: Option<CanvasElement>,
     ctx: Option<CanvasRenderingContext2d>,
     cbk: Callback<ClickEvent>,
-    animate_cbk: Callback<(usize, i64, usize, usize, bool)>,
+    animate_cbk: Callback<(usize, i64, char, usize, usize, bool)>,
     map: Vec<Vec<i64>>,
     dummy_map: Vec<Vec<char>>,
     current_move: i64,
@@ -54,7 +54,7 @@ pub struct Props {
 
 pub enum Message {
     Click(ClickEvent),
-    AnimateCallback((usize, i64, usize, usize, bool)),
+    AnimateCallback((usize, i64, char, usize, usize, bool)),
     Ignore
 }
 
@@ -72,88 +72,134 @@ impl TootCanvasModel {
 
     #[inline]
     pub fn check_state(&self, state: &Vec<Vec<i64>>) -> (i64, i64) {
-        return (0, 0);
+        let mut win_val = 0;
+        let mut chain_val = 0;
+        let (mut temp_r, mut temp_b, mut temp_br, mut temp_tr) = (0, 0, 0, 0);
+        for i in 0..6 {
+            for j in 0..7 {
+                temp_r = 0;
+                temp_b = 0;
+                temp_br = 0;
+                temp_tr = 0;
+                for k in 0..=3 {
+                    // TODO may need to be flipped
+                    let sign: i64 = if k == 0 || k == 3 { -1 } else { 1 };
+                    if j + k < 7 {
+                        temp_r += sign * state[i][j + k];
+                    }
+                    if i + k < 6 {
+                        temp_b += sign * state[i + k][j];
+                    }
+                    if i + k < 6 && j + k < 7 {
+                        temp_br += sign * state[i + k][j + k];
+                    }
+
+                    if i >= k && j + k < 7 {
+                        temp_tr += sign * state[i - k][j + k];
+                    }
+                }
+                chain_val += temp_r * temp_r * temp_r;
+                chain_val += temp_b * temp_b * temp_b;
+                chain_val += temp_br * temp_br * temp_br;
+                chain_val += temp_tr * temp_tr * temp_tr;
+
+                if temp_r.abs() == 4 {
+                    win_val = temp_r;
+                } else if temp_b.abs() == 4 {
+                    win_val = temp_b;
+                } else if temp_br.abs() == 4 {
+                    win_val = temp_br;
+                } else if temp_tr.abs() == 4 {
+                    win_val = temp_tr;
+                }
+            }
+        }
+        info!("{}", win_val);
+        return (win_val, chain_val);
     }
 
     pub fn value(
         &self,
-        ai_move_value: i64,
         state: &Vec<Vec<i64>>,
         depth: i64,
         mut alpha: i64,
         mut beta: i64,
-    ) -> (i64, i64) {
+    ) -> (i64) {
         let val = self.check_state(state);
-        if depth >= 4 {
+        if depth >= 3 {
             // if slow (or memory consumption is high), lower the value
             let mut ret_val = 0;
 
             // if win, value = +inf
             let win_val = val.0;
-            let chain_val = val.1 * ai_move_value;
+            let chain_val = val.1;
             ret_val = chain_val;
 
             // If it lead to winning, then do it
-            if win_val == 4 * ai_move_value {
+            if win_val == 4 {
                 // AI win, AI wants to win of course
                 ret_val = 999999;
-            } else if win_val == 4 * ai_move_value * -1 {
+            } else if win_val == 4 {
                 // AI lose, AI hates losing
                 ret_val = 999999 * -1;
             }
             ret_val -= depth * depth;
 
-            return (ret_val, -1);
+            return (ret_val);
         }
 
         let win = val.0;
         // if already won, then return the value right away
-        if win == 4 * ai_move_value {
+        if win == 4 {
             // AI win, AI wants to win of course
-            return (999999 - depth * depth, -1);
+            return (999999 - depth * depth);
         }
-        if win == 4 * ai_move_value * -1 {
+        if win == -4 {
             // AI lose, AI hates losing
-            return (999999 * -1 - depth * depth, -1);
+            return (-999999 - depth * depth);
         }
 
         if depth % 2 == 0 {
-            return self.min_state(ai_move_value, state, depth + 1, alpha, beta);
+            return self.min_state(state, depth + 1, alpha, beta).0;
+        } else {
+            return self.max_state(state, depth + 1, alpha, beta).0;
         }
-        return self.max_state(ai_move_value, state, depth + 1, alpha, beta);
     }
 
+    // TODO - add letter to AI search
     pub fn max_state(
         &self,
-        ai_move_value: i64,
         state: &Vec<Vec<i64>>,
         depth: i64,
         mut alpha: i64,
         mut beta: i64,
-    ) -> (i64, i64) {
+    ) -> (i64, (i64, char)) {
         let mut v = -100000000007;
-        let mut new_move: i64 = -1;
+        let mut new_move: (i64, char) = (-1, ' ');
         let mut move_queue = Vec::new();
 
-        for j in 0..7 {
-            let temp_state = self.fill_map(state, j, ai_move_value);
-            if temp_state[0][0] != 999 {
-                let temp_val = self.value(ai_move_value, &temp_state, depth, alpha, beta);
-                if temp_val.0 > v {
-                    v = temp_val.0;
-                    new_move = j as i64;
-                    move_queue = Vec::new();
-                    move_queue.push(j);
-                } else if temp_val.0 == v {
-                    move_queue.push(j);
-                }
+        for letter in &['T', 'O'] {
+            for j in 0..7 {
+                let move_value = if *letter == 'T' { 1 } else { -1 };
+                let temp_state = self.fill_map(state, j, move_value);
+                if temp_state[0][0] != 999 {
+                    let temp_val = self.value(&temp_state, depth, alpha, beta);
+                    if temp_val > v {
+                        v = temp_val;
+                        new_move = (j as i64, *letter);
+                        move_queue = Vec::new();
+                        move_queue.push((j as i64, *letter));
+                    } else if temp_val == v {
+                        move_queue.push(((j as i64, *letter)));
+                    }
 
-                // alpha-beta pruning
-                if v > beta {
-                    new_move = self.choose(&move_queue);
-                    return (v, new_move);
+                    // alpha-beta pruning
+                    if v > beta {
+                        new_move = self.choose(&move_queue);
+                        return (v, new_move);
+                    }
+                    alpha = std::cmp::max(alpha, v);
                 }
-                alpha = std::cmp::max(alpha, v);
             }
         }
         new_move = self.choose(&move_queue);
@@ -161,37 +207,40 @@ impl TootCanvasModel {
         return (v, new_move);
     }
 
+    // TODO - add letter choice to search
     pub fn min_state(
         &self,
-        ai_move_value: i64,
         state: &Vec<Vec<i64>>,
         depth: i64,
         mut alpha: i64,
         mut beta: i64,
-    ) -> (i64, i64) {
+    ) -> (i64, (i64, char)) {
         let mut v = 100000000007;
-        let mut new_move: i64 = -1;
+        let mut new_move: (i64, char) = (-1, ' ');
         let mut move_queue = Vec::new();
 
-        for j in 0..7 {
-            let temp_state = self.fill_map(state, j, ai_move_value * -1);
-            if temp_state[0][0] != 999 {
-                let temp_val = self.value(ai_move_value, &temp_state, depth, alpha, beta);
-                if temp_val.0 < v {
-                    v = temp_val.0;
-                    new_move = j as i64;
-                    move_queue = Vec::new();
-                    move_queue.push(j);
-                } else if temp_val.0 == v {
-                    move_queue.push(j);
-                }
+        for letter in &['T', 'O'] {
+            for j in 0..7 {
+                let move_value = if *letter == 'T' { 1 } else { -1 };
+                let temp_state = self.fill_map(state, j, move_value);
+                if temp_state[0][0] != 999 {
+                    let temp_val = self.value(&temp_state, depth, alpha, beta);
+                    if temp_val < v {
+                        v = temp_val;
+                        new_move = (j as i64, *letter);
+                        move_queue = Vec::new();
+                        move_queue.push((j as i64, *letter));
+                    } else if temp_val == v {
+                        move_queue.push((j as i64, *letter));
+                    }
 
-                // alpha-beta pruning
-                if v < alpha {
-                    new_move = self.choose(&move_queue);
-                    return (v, new_move);
+                    // alpha-beta pruning
+                    if v < alpha {
+                        new_move = self.choose(&move_queue);
+                        return (v, new_move);
+                    }
+                    beta = std::cmp::min(beta, v);
                 }
-                beta = std::cmp::min(beta, v);
             }
         }
         new_move = self.choose(&move_queue);
@@ -209,28 +258,29 @@ impl TootCanvasModel {
     }
 
     #[inline]
-    pub fn choose(&self, choice: &Vec<usize>) -> i64 {
+    pub fn choose<T: Copy>(&self, choice: &Vec<T>) -> T {
         let index = self.get_random_val(choice.len());
-        return choice[index] as i64;
+        return choice[index];
     }
 
     pub fn ai(&mut self, ai_move_value: i64) {
         let new_map = self.map.clone();
-        let val_choice = self.max_state(ai_move_value, &new_map, 0, -100000000007, 100000000007);
+        let val_choice = self.max_state(&new_map, 0, -100000000007, 100000000007);
 
-        let val = val_choice.0;
-        let choice = val_choice.1;
+        let (val, (column, letter)) = val_choice;
 
         self.paused = false;
-        let mut done = self.action(choice as usize, true);
+        let mut done = self.action(column as usize, letter, true);
 
         while done < 0 {
             log::info!("Using random agent");
             let random_choice = self.get_random_val(7);
-            done = self.action(random_choice, true);
+            let letter = if self.get_random_val(2) == 0 { 'T' } else { 'O' };
+            done = self.action(random_choice, letter, true);
         }
     }
 
+    // TODO - add choice of letter
     #[inline]
     pub fn fill_map(&self, new_state: &Vec<Vec<i64>>, column: usize, value: i64) -> Vec<Vec<i64>> {
         let mut temp_map = new_state.clone();
@@ -364,11 +414,11 @@ impl TootCanvasModel {
                 } else if String::from_iter(temp_b) == otto {
                     self.win(-1);
                 } else if String::from_iter(temp_br.clone()) == toot {
-                    self.win(-1);
-                } else if String::from_iter(temp_br) == otto {
                     self.win(1);
-                } else if String::from_iter(temp_tr.clone()) == toot {
+                } else if String::from_iter(temp_br) == otto {
                     self.win(-1);
+                } else if String::from_iter(temp_tr.clone()) == toot {
+                    self.win(1);
                 } else if String::from_iter(temp_tr) == otto {
                     self.win(-1);
                 }
@@ -397,9 +447,10 @@ impl TootCanvasModel {
 
     #[inline]
     pub fn player_move(&self) -> i64 {
-        match self.current_move % 2 {
-            0 => 1,
-            _ => -1,
+        match self.letter.as_str() {
+            "T" => 1,
+            "O" => -1,
+            _ => 0, // unreachable
         }
     }
 
@@ -407,6 +458,7 @@ impl TootCanvasModel {
         &mut self,
         column: usize,
         current_move: i64,
+        letter: char,
         to_row: usize,
         cur_pos: usize,
         mode: bool,
@@ -426,17 +478,17 @@ impl TootCanvasModel {
                 (cur_pos + 50) as u32,
                 &fg_color,
                 "black",
-                &self.letter,
+                &letter.to_string(),
             );
             self.draw_mask();
 
             let cloned = self.animate_cbk.clone();
             window().request_animation_frame(enclose!((cloned) move |_| {
-                cloned.emit((column, current_move, to_row, cur_pos+25, mode));
+                cloned.emit((column, current_move, letter, to_row, cur_pos+25, mode));
             }));
         } else {
-            self.map[to_row][column] = self.player_move();
-            self.dummy_map[to_row][column] = self.letter.chars().next().unwrap();
+            self.map[to_row][column] = if letter == 'T' { 1 } else { -1 };
+            self.dummy_map[to_row][column] = letter;
             self.current_move += 1;
             self.draw();
             self.check();
@@ -449,7 +501,7 @@ impl TootCanvasModel {
     }
 
     #[inline(always)]
-    pub fn action(&mut self, column: usize, mode: bool) -> i64 {
+    pub fn action(&mut self, column: usize, letter: char, mode: bool) -> i64 {
         if self.paused || self.won {
             return 0;
         }
@@ -471,7 +523,7 @@ impl TootCanvasModel {
             row = 5;
         }
 
-        self.animate(column, self.player_move(), row, 0, mode);
+        self.animate(column, self.player_move(), letter, row, 0, mode);
 
         self.paused = true;
         return 1;
@@ -553,8 +605,8 @@ impl Component for TootCanvasModel {
             canvas: None,
             ctx: None,
             cbk: link.callback(|e: ClickEvent| Message::Click(e)),
-            animate_cbk: link
-                .callback(|e: (usize, i64, usize, usize, bool)| Message::AnimateCallback(e)),
+            animate_cbk: link.callback(
+                |e: (usize, i64, char, usize, usize, bool)| Message::AnimateCallback(e)),
             map,
             dummy_map,
             current_move: 0,
@@ -588,7 +640,8 @@ impl Component for TootCanvasModel {
                     if self.on_region(x, (75 * j + 100) as f64, 25 as f64) {
                         self.paused = false;
 
-                        let valid = self.action(j, false);
+                        // TODO
+                        let valid = self.action(j, self.letter.chars().next().unwrap(), false);
                         if valid == 1 {
                             self.reject_click = true;
                         };
@@ -597,8 +650,8 @@ impl Component for TootCanvasModel {
                     }
                 }
             }
-            Message::AnimateCallback((a, b, c, d, e)) => {
-                self.animate(a, b, c, d, e);
+            Message::AnimateCallback((a, b, c, d, e, f)) => {
+                self.animate(a, b, c, d, e, f);
             }
             Message::Ignore => (),
         };
