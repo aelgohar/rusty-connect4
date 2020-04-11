@@ -79,7 +79,12 @@ impl Component for Sidebar {
 
                         {for list_items}
                     </nav>
-                    <div style="overflow-y: auto; padding-left: 390px">
+                    <header class="w3-container w3-top w3-hide-large w3-red w3-xlarge w3-padding">
+                    <a href="javascript:void(0)" class="w3-btn w3-red w3-border w3-border-white w3-margin-right">{"\u{2630}"}</a>
+                    <span>{"Connect 4 with MEAN"}</span>
+                    </header>
+                    <div class="w3-overlay w3-hide-large" style="cursor:pointer" title="close side menu" id="myOverlay"></div>
+                    <div class="w3-main" style="margin-left:390px;margin-right:40px">
                     {
                         html !{
                             <DisplayWindow uri=active_markdown_uri />

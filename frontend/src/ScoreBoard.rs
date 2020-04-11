@@ -6,7 +6,7 @@ use yew::services::fetch::{FetchService, FetchTask, Request, Response};
 use yew::{html, Component, ComponentLink, Html, ShouldRender};
 
 pub enum Msg {
-    FetchReady(Result<Vec<Game>,Error>),
+    FetchReady(Result<Vec<Game>, Error>),
     Ignore,
 }
 
@@ -46,8 +46,7 @@ impl ScoreBoardModel {
                     }
                 }).collect::<Html>() }
             }
-        }
-        else {
+        } else {
             html! {
                 <tr><td colspan="6">{"Loading..."}</td></tr>
             }
@@ -55,17 +54,17 @@ impl ScoreBoardModel {
     }
 
     fn fetch_games(&mut self) -> FetchTask {
-        let callback = self.link.callback(
-            move |response: Response<Json<Result<Vec<Game>, Error>>>| {
-                let (meta, Json(data)) = response.into_parts();
-                if meta.status.is_success() {
-                    Msg::FetchReady(data)
-                } else {
-                    error!("Failed to fetch games");
-                    Msg::Ignore
-                }
-            }
-        );
+        let callback =
+            self.link
+                .callback(move |response: Response<Json<Result<Vec<Game>, Error>>>| {
+                    let (meta, Json(data)) = response.into_parts();
+                    if meta.status.is_success() {
+                        Msg::FetchReady(data)
+                    } else {
+                        error!("Failed to fetch games");
+                        Msg::Ignore
+                    }
+                });
         let request = Request::get("/games").body(Nothing).unwrap();
         self.fetch_service.fetch(request, callback).unwrap()
     }

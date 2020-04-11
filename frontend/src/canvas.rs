@@ -236,7 +236,7 @@ impl CanvasModel {
         return (v, new_move);
     }
 
-    // get random int 0 <= x <= val
+    #[inline]
     pub fn get_random_val(&self, val: usize) -> usize {
         let rand = js! { return Math.random(); };
         let base: f64 = rand.try_into().unwrap();
@@ -245,6 +245,7 @@ impl CanvasModel {
         return (base * max_val).floor() as usize;
     }
 
+    #[inline]
     pub fn choose(&self, choice: &Vec<usize>) -> i64 {
         let index = self.get_random_val(choice.len());
         return choice[index] as i64;
