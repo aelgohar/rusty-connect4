@@ -1,11 +1,15 @@
 use crate::player::Player;
 use crate::toot_canvas::TootCanvasModel;
 use yew::html::InputData;
-use yew::{prelude::*, virtual_dom::VNode, Properties};
+use yew::{prelude::*, components::Select, virtual_dom::VNode, Properties};
+
+use crate::Connect4Computer::Difficulty::{self, *};
 
 pub struct TootOttoComputerModel {
     player: Player,
+    difficulty: Difficulty,
     update_player_name: Callback<InputData>,
+    update_difficulty: Callback<Difficulty>,
     start_game_callback: Callback<ClickEvent>,
     update_letter: Callback<InputData>,
     end_game_callback: Callback<i64>,
@@ -18,6 +22,7 @@ pub struct TootOttoComputerModel {
 #[derive(Debug)]
 pub enum Msg {
     NewPlayer(InputData),
+    ChangeDifficulty(Difficulty),
     StartGame,
     EndGame,
     UpdateLetter(InputData),
@@ -34,7 +39,9 @@ impl Component for TootOttoComputerModel {
 
         TootOttoComputerModel {
             player,
+            difficulty: Easy,
             update_player_name: link.callback(|e: InputData| Msg::NewPlayer(e)),
+            update_difficulty: link.callback(|e: Difficulty| Msg::ChangeDifficulty(e)),
             start_game_callback: link.callback(|e| Msg::StartGame),
             end_game_callback: link.callback(|e: i64| Msg::EndGame),
             update_letter: link.callback(|e: InputData| Msg::UpdateLetter(e)),
@@ -48,6 +55,10 @@ impl Component for TootOttoComputerModel {
     fn update(&mut self, msg: Self::Message) -> ShouldRender {
         match msg {
             Msg::NewPlayer(val) => self.player.value = val.value,
+            Msg::ChangeDifficulty(data) => {
+                self.difficulty = data
+                // update canvas
+            }
             Msg::StartGame => {
                 self.is_game_on = true;
                 self.disabled = true;
@@ -85,12 +96,16 @@ impl Component for TootOttoComputerModel {
                         placeholder="Player's Name",
                         oninput = &self.update_player_name,
                     />
+                    <Select<Difficulty> 
+                        disabled = { self.disabled }
+                        selected = Some(Easy),
+                        options = { vec![Easy, Medium, Hard] }
+                        onchange = &self.update_difficulty />
                     <button
-                    id="startbutton",
-                    onclick=&self.start_game_callback,
-                    disabled={self.disabled},
-                    title="Start Game",
-                    >
+                        id="startbutton",
+                        onclick=&self.start_game_callback,
+                        disabled={self.disabled},
+                        title="Start Game">
                     { "Start Game" }
                     </button>
                 </div>
@@ -106,7 +121,12 @@ impl Component for TootOttoComputerModel {
                 <input type="radio" id="O" value="O" checked={self.letter=="O"} oninput=&self.update_letter/>
                 <label for="O">{"O"}</label>
                 <br></br>
-                <TootCanvasModel: canvas_id = "toot_computer" player1 = self.player.value.clone(), player2="Computer", letter=self.letter.clone(), game_done_cbk=&self.end_game_callback/>
+                <TootCanvasModel: 
+                    canvas_id = "toot_computer" 
+                    player1 = self.player.value.clone(), 
+                    player2="Computer", letter=self.letter.clone(),
+                    difficulty = self.difficulty,
+                    game_done_cbk=&self.end_game_callback/>
             </div>
             <br></br>
             </>
