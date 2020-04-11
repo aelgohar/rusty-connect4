@@ -255,7 +255,7 @@ impl TootCanvasModel {
         context.begin_path();
         context.arc(x as f64, y as f64, 25.0, 0.0, 2.0 * 3.14159265359, false);
         context.fill(FillRule::NonZero);
-        context.set_font("bold 25px serif");
+        context.set_font("bold 30px serif");
         context.restore();
         context.fill_text(text, x as f64 - 8.5, y as f64 + 8.0, None);
     }
@@ -406,7 +406,7 @@ impl TootCanvasModel {
         } else if current_move <= -1 {
             fg_color = "#ffff99";
         }
-        //TODO GET TEXT FROM MAIN FRAME
+
         if to_row * 75 >= cur_pos {
             self.clear();
             self.draw();
@@ -485,7 +485,7 @@ impl TootCanvasModel {
 
         let context = self.ctx.as_ref().unwrap();
         context.save();
-        context.set_font("14pt sans-serif");
+        context.set_font("22pt sans-serif");
         context.set_fill_style_color("#111");
         context.fill_text(&to_print, 150.0, 20.0, None);
 

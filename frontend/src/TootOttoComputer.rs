@@ -102,7 +102,7 @@ impl Component for TootOttoComputerModel {
                 <br></br>
                 <h4>{"Select a Disc Type   :"}</h4>
                 <input type="radio" id="T" name="gender" value="T" oninput=&self.update_letter/>
-                <label for="T">{"T"}</label><br></br>
+                <label for="T">{"T"}</label>
                 <input type="radio" id="O" name="gender" value="O" oninput=&self.update_letter/>
                 <label for="O">{"O"}</label>
                 <br></br>
