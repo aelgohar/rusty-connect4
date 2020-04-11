@@ -56,7 +56,7 @@ impl Component for TootOttoComputerModel {
             Msg::EndGame => {
                 self.is_game_on = false;
                 self.disabled = false;
-                // self.display_state = "none".to_string();
+                self.display_state = "none".to_string();
             }
             Msg::UpdateLetter(e) => {
                 self.letter = e.value.to_string();
