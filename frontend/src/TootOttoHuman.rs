@@ -116,10 +116,10 @@ impl Component for TootOttoHumanModel {
                 <h4>{format!("New Game: {} Vs {}", self.player1.value, self.player2.value)}</h4>
                 <small>{format!("(Winning Combination: {} - ", self.player1.value)} <b>{"TOOT"}</b> {format!("   and    {} - ", self.player2.value)} <b>{"OTTO)"}</b></small>
                 <br></br>
-                <h4>{"Select a Disc Type   :"}</h4>
-                <input type="radio" id="T" name="gender" value="T" oninput=&self.update_letter/>
-                <label for="T">{"T"}</label><br></br>
-                <input type="radio" id="O" name="gender" value="O" oninput=&self.update_letter/>
+                {"Select a Disc Type:  "}
+                <input type="radio" id="T" value="T" checked={self.letter=="T"} oninput=&self.update_letter/>
+                <label for="T">{"T"}</label>
+                <input type="radio" id="O" value="O" checked={self.letter=="O"} oninput=&self.update_letter/>
                 <label for="O">{"O"}</label>
                 <br></br>
                 <TootCanvasModel: canvas_id="toot_human" player1 = self.player1.value.clone(), player2=self.player2.value.clone(), letter=self.letter.clone(), game_done_cbk=&self.end_game_callback/>
