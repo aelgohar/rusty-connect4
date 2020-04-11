@@ -14,13 +14,6 @@ pub enum Msg {
     Ignore,
 }
 
-impl From<()> for Msg {
-    fn from(parameter: ()) -> Self {
-        error!("Tried to create message from unit type!");
-        Msg::Ignore
-    }
-}
-
 pub struct ScoresModel {
     fetch_service: FetchService,
     fetch_task: Option<FetchTask>,
@@ -54,7 +47,7 @@ impl ScoresModel {
                         <td>{ game.gameType.as_str() }</td>
                         <td>{ game.WinnerName.as_str() }</td>
                         <td>{ game.Player1Name.as_str() }</td>
-                        <td>{ &Date::from_time(game.GameDate as f64).to_string()[0..24] }</td>
+                        <td>{ &Date::from_time(game.GameDate as f64).to_string() }</td>
                         </tr>
                     }
                 }).collect::<Html>() }

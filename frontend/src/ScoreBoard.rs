@@ -10,13 +10,6 @@ pub enum Msg {
     Ignore,
 }
 
-impl From<()> for Msg {
-    fn from(parameter: ()) -> Self {
-        error!("Tried to create message from unit type!");
-        Msg::Ignore
-    }
-}
-
 #[derive(Serialize, Deserialize, Debug)]
 #[allow(non_snake_case)]
 pub struct Game {
@@ -48,7 +41,7 @@ impl ScoreBoardModel {
                         <td>{ game.Player1Name.as_str() }</td>
                         <td>{ game.Player2Name.as_str() }</td>
                         <td>{ game.WinnerName.as_str() }</td>
-                        <td>{ &Date::from_time(game.GameDate as f64).to_string()[0..24] }</td>
+                        <td>{ &Date::from_time(game.GameDate as f64).to_string() }</td>
                         </tr>
                     }
                 }).collect::<Html>() }
