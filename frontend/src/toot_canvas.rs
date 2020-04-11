@@ -316,9 +316,11 @@ impl TootCanvasModel {
         context.begin_path();
         context.arc(x as f64, y as f64, 25.0, 0.0, 2.0 * 3.14159265359, false);
         context.fill(FillRule::NonZero);
+        context.restore();
+
         context.set_font("bold 30px serif");
         context.restore();
-        context.fill_text(text, x as f64 - 8.5, y as f64 + 8.0, None);
+        context.fill_text(text, x as f64 - 12.0, y as f64 + 12.0, None);
     }
 
     #[inline]

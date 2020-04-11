@@ -294,7 +294,7 @@ impl CanvasModel {
         return temp_map;
     }
 
-    pub fn draw_circle(&self, x: u32, y: u32, fill: &str, stroke: &str) {
+    pub fn draw_circle(&self, x: u32, y: u32, fill: &str, stroke: &str, text: &str) {
         self.ctx.as_ref().unwrap().save();
         self.ctx.as_ref().unwrap().set_fill_style_color(&fill);
         self.ctx.as_ref().unwrap().set_stroke_style_color(&stroke);
@@ -305,6 +305,11 @@ impl CanvasModel {
             .arc(x as f64, y as f64, 25.0, 0.0, 2.0 * 3.14159265359, false);
         self.ctx.as_ref().unwrap().fill(FillRule::NonZero);
         self.ctx.as_ref().unwrap().restore();
+
+        let context = self.ctx.as_ref().unwrap();
+        context.set_font("bold 30px serif");
+        context.restore();
+        context.fill_text(text, x as f64 - 12.0, y as f64 + 12.0, None);
     }
 
     pub fn draw_mask(&self) {
@@ -347,6 +352,9 @@ impl CanvasModel {
                     (75 * y + 50) as u32,
                     &fg_color,
                     "black",
+                    if self.map[y][x] >= 1 { "X" } 
+                    else if self.map[y][x] <= -1 { "O" }
+                    else { "" }
                 );
             }
         }
@@ -437,6 +445,7 @@ impl CanvasModel {
                 (cur_pos + 50) as u32,
                 &fg_color,
                 "black",
+                if self.player_move() == 1 { "X" } else { "O" }
             );
             self.draw_mask();
 
