@@ -1,6 +1,8 @@
 use crate::canvas::CanvasModel;
-use crate::player::Player;
 use yew::{prelude::*, virtual_dom::VNode, Properties};
+
+use crate::player::Player;
+use crate::Connect4Computer::Difficulty::Easy;
 
 pub struct Connect4HumanModel {
     player1: Player,
@@ -107,7 +109,12 @@ impl Component for Connect4HumanModel {
                 <h4>{format!("New Game: {} Vs {}", self.player1.value, self.player2.value)}</h4>
                 <small disabled={!self.disabled}>{format!("(Disc Colors: {} - ", self.player1.value)} <b>{"Red"}</b> {format!("   and    {} - ", self.player2.value)} <b>{"Yellow)"}</b></small>
                 <br></br>
-                <CanvasModel: canvas_id = "connect_human" player1 = self.player1.value.clone(), player2=self.player2.value.clone(), game_done_cbk=&self.end_game_callback/>
+                <CanvasModel: 
+                    canvas_id = "connect_human" 
+                    player1 = self.player1.value.clone(), 
+                    player2=self.player2.value.clone(),
+                    difficulty = Easy,
+                    game_done_cbk=&self.end_game_callback/>
             </div>
             </>
         }

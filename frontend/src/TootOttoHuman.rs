@@ -3,6 +3,8 @@ use crate::toot_canvas::TootCanvasModel;
 use yew::html::InputData;
 use yew::{prelude::*, virtual_dom::VNode, Properties};
 
+use crate::Connect4Computer::Difficulty::Easy;
+
 pub struct TootOttoHumanModel {
     player1: Player,
     player2: Player,
@@ -122,7 +124,13 @@ impl Component for TootOttoHumanModel {
                 <input type="radio" id="O" value="O" checked={self.letter=="O"} oninput=&self.update_letter/>
                 <label for="O">{"O"}</label>
                 <br></br>
-                <TootCanvasModel: canvas_id="toot_human" player1 = self.player1.value.clone(), player2=self.player2.value.clone(), letter=self.letter.clone(), game_done_cbk=&self.end_game_callback/>
+                <TootCanvasModel: 
+                    canvas_id="toot_human" 
+                    player1 = self.player1.value.clone(), 
+                    player2=self.player2.value.clone(),
+                    difficulty = Easy,
+                    letter=self.letter.clone(), 
+                    game_done_cbk=&self.end_game_callback/>
             </div>
             <br></br>
             </>

@@ -12,6 +12,7 @@ use yew::{prelude::*, virtual_dom::VNode, Properties};
 
 use crate::player::Player;
 use crate::ScoreBoard::Game;
+use crate::Connect4Computer::Difficulty::{self, *};
 
 macro_rules! enclose {
     ( ($( $x:ident ),*) $y:expr ) => {
@@ -43,6 +44,7 @@ pub struct CanvasModel {
 pub struct Props {
     pub player1: Option<String>,
     pub player2: Option<String>,
+    pub difficulty: Difficulty,
     pub canvas_id: Option<String>,
     pub game_done_cbk: Callback<i64>,
 }
@@ -121,7 +123,13 @@ impl CanvasModel {
         mut beta: i64,
     ) -> (i64, i64) {
         let val = self.check_state(state);
-        if depth >= 4 {
+        let max_depth = match self.props.difficulty {
+            Easy => 1,
+            Medium => 2,
+            Hard => 4,
+        };
+        info!("{:?}", self.props.difficulty);
+        if depth >= max_depth {
             // if slow (or memory consumption is high), lower the value
             let mut ret_val = 0;
 
