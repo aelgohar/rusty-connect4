@@ -485,7 +485,7 @@ impl TootCanvasModel {
 
         let context = self.ctx.as_ref().unwrap();
         context.save();
-        context.set_font("22pt sans-serif");
+        context.set_font("14pt sans-serif");
         context.set_fill_style_color("#111");
         context.fill_text(&to_print, 150.0, 20.0, None);
 
