@@ -3,16 +3,16 @@ use serde_json::json;
 use stdweb::traits::*;
 use stdweb::unstable::TryInto;
 use stdweb::web::html_element::CanvasElement;
+use stdweb::web::Date;
 use stdweb::web::FillRule;
 use stdweb::web::{document, window, CanvasRenderingContext2d};
-use stdweb::web::Date;
 use yew::format::Json;
 use yew::services::fetch::{FetchService, FetchTask, Request, Response};
 use yew::{prelude::*, virtual_dom::VNode, Properties};
 
 use crate::player::Player;
-use crate::ScoreBoard::Game;
 use crate::Connect4Computer::Difficulty::{self, *};
+use crate::ScoreBoard::Game;
 
 macro_rules! enclose {
     ( ($( $x:ident ),*) $y:expr ) => {
@@ -125,8 +125,8 @@ impl CanvasModel {
         let val = self.check_state(state);
         let max_depth = match self.props.difficulty {
             Easy => 1,
-            Medium => 2,
-            Hard => 4,
+            Medium => 3,
+            Hard => 5,
         };
         info!("{:?}", self.props.difficulty);
         if depth >= max_depth {
@@ -360,9 +360,13 @@ impl CanvasModel {
                     (75 * y + 50) as u32,
                     &fg_color,
                     "black",
-                    if self.map[y][x] >= 1 { "X" } 
-                    else if self.map[y][x] <= -1 { "O" }
-                    else { "" }
+                    if self.map[y][x] >= 1 {
+                        "X"
+                    } else if self.map[y][x] <= -1 {
+                        "O"
+                    } else {
+                        ""
+                    },
                 );
             }
         }
@@ -453,7 +457,7 @@ impl CanvasModel {
                 (cur_pos + 50) as u32,
                 &fg_color,
                 "black",
-                if self.player_move() == 1 { "X" } else { "O" }
+                if self.player_move() == 1 { "X" } else { "O" },
             );
             self.draw_mask();
 
@@ -543,17 +547,18 @@ impl CanvasModel {
         };
 
         // construct callback
-        let callback = self.link.callback(
-            move |response: Response<Result<String, Error>>| {
+        let callback = self
+            .link
+            .callback(move |response: Response<Result<String, Error>>| {
                 info!("successfully saved!");
                 Message::Ignore
-            }
-        );
+            });
 
         // construct request
         let request = Request::post("/games")
             .header("Content-Type", "application/json")
-            .body(Json(&game)).unwrap();
+            .body(Json(&game))
+            .unwrap();
 
         // send the request
         self.fetch_task = self.fetch_service.fetch(request, callback).ok();
@@ -622,7 +627,7 @@ impl Component for CanvasModel {
             Message::AnimateCallback((a, b, c, d, e)) => {
                 self.animate(a, b, c, d, e);
             }
-            Message::Ignore => {},
+            Message::Ignore => {}
         };
 
         true
