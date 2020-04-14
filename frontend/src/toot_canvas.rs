@@ -5,16 +5,16 @@ use stdweb::traits::*;
 use stdweb::unstable::TryInto;
 use stdweb::web::event::{MouseMoveEvent, ResizeEvent};
 use stdweb::web::html_element::CanvasElement;
+use stdweb::web::Date;
 use stdweb::web::FillRule;
 use stdweb::web::{document, window, CanvasRenderingContext2d};
-use stdweb::web::Date;
 use yew::format::Json;
 use yew::services::fetch::{FetchService, FetchTask, Request, Response};
 use yew::{prelude::*, virtual_dom::VNode, Properties};
 
 use crate::player::Player;
-use crate::ScoreBoard::Game;
 use crate::Connect4Computer::Difficulty::{self, *};
+use crate::ScoreBoard::Game;
 
 macro_rules! enclose {
     ( ($( $x:ident ),*) $y:expr ) => {
@@ -57,7 +57,7 @@ pub struct Props {
 pub enum Message {
     Click(ClickEvent),
     AnimateCallback((usize, i64, char, usize, usize, bool)),
-    Ignore
+    Ignore,
 }
 
 impl TootCanvasModel {
@@ -119,18 +119,12 @@ impl TootCanvasModel {
         return (win_val, chain_val);
     }
 
-    pub fn value(
-        &self,
-        state: &Vec<Vec<i64>>,
-        depth: i64,
-        mut alpha: i64,
-        mut beta: i64,
-    ) -> (i64) {
+    pub fn value(&self, state: &Vec<Vec<i64>>, depth: i64, mut alpha: i64, mut beta: i64) -> (i64) {
         let val = self.check_state(state);
         let max_depth = match self.props.difficulty {
             Easy => 1,
-            Medium => 2,
-            Hard => 3,
+            Medium => 3,
+            Hard => 5,
         };
         if depth >= max_depth {
             // if slow (or memory consumption is high), lower the value
@@ -281,7 +275,11 @@ impl TootCanvasModel {
         while done < 0 {
             log::info!("Using random agent");
             let random_choice = self.get_random_val(7);
-            let letter = if self.get_random_val(2) == 0 { 'T' } else { 'O' };
+            let letter = if self.get_random_val(2) == 0 {
+                'T'
+            } else {
+                'O'
+            };
             done = self.action(random_choice, letter, true);
         }
     }
@@ -577,17 +575,18 @@ impl TootCanvasModel {
         };
 
         // construct callback
-        let callback = self.link.callback(
-            move |response: Response<Result<String, Error>>| {
+        let callback = self
+            .link
+            .callback(move |response: Response<Result<String, Error>>| {
                 info!("successfully saved!");
                 Message::Ignore
-            }
-        );
+            });
 
         // construct request
         let request = Request::post("/games")
             .header("Content-Type", "application/json")
-            .body(Json(&game)).unwrap();
+            .body(Json(&game))
+            .unwrap();
 
         // send the request
         self.fetch_task = self.fetch_service.fetch(request, callback).ok();
@@ -613,8 +612,8 @@ impl Component for TootCanvasModel {
             canvas: None,
             ctx: None,
             cbk: link.callback(|e: ClickEvent| Message::Click(e)),
-            animate_cbk: link.callback(
-                |e: (usize, i64, char, usize, usize, bool)| Message::AnimateCallback(e)),
+            animate_cbk: link
+                .callback(|e: (usize, i64, char, usize, usize, bool)| Message::AnimateCallback(e)),
             map,
             dummy_map,
             current_move: 0,
