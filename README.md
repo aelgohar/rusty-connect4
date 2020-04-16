@@ -12,7 +12,7 @@ cargo install cargo-web
 
 ### MongoDB
 
-The backend uses MongoDB for storing game history. Instructions for how to install MongoDB can be found [here](https://docs.mongodb.com/manual/installation/)
+The backend uses MongoDB for storing game history. Instructions for how to install MongoDB can be found [here.](https://docs.mongodb.com/manual/installation/)
 
 ## Run
 
@@ -28,5 +28,5 @@ To build and run the backend:
 cargo run -p backend
 ```
 
-The game should now be up and running and can be accessed by going to [localhost:8000](localhost:8000) in any web browser.
+The game should now be up and running and can be accessed by going to [localhost:8000](http://localhost:8000) in any web browser.
 
