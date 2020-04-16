@@ -1,25 +1,32 @@
-# Connect4-Toot-Otto-Frontend
+# Rusty Connect 4 Web App
 
-# Using cargo-web
+## Dependencies
 
-Cargo web is a cargo subcommand for building client web apps. It makes building and deploying web applications incredibly easy. It is also the only toolchain that supports Emscripten targets. Read more [here](https://github.com/koute/cargo-web).
+### cargo-web
 
-**Install**
+The frontend is built using cargo-web, which can be installed with the following command.
 
 ```bash
 cargo install cargo-web
 ```
 
-### Build
+### MongoDB
 
-```bash
-cargo web build
-```
+The backend uses MongoDB for storing game history. Instructions for how to install MongoDB can be found [here](https://docs.mongodb.com/manual/installation/)
 
-### Run
+## Run
 
+The project can be built and ran from by executing the following commands from the base directory of the project.
+
+To compile the frontend and generate the static files for the webpage:
 ```bash
 (cd frontend && cargo web deploy)
+```
+
+To build and run the backend:
+```bash
 cargo run -p backend
 ```
+
+The game should now be up and running and can be accessed by going to [localhost:8000](localhost:8000) in any web browser.
 
