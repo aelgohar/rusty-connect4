@@ -1,4 +1,14 @@
 # Rusty Connect 4 Web App
+Rusty Connect 4 is a full-stack project written completely in Rust.
+It uses:
+- `rocket` on the backend
+- [`yew`](https://yew.rs/) for creating front-end webapps with `WebAssembly` (yew is a great component-based framework!) 
+- [`yew-router`](https://github.com/yewstack/yew_router) for routing 
+- [`stdweb`]( https://github.com/koute/stdweb) to provide Rust bindings for Web APIs
+
+The backend is only used for requests and saving your progress. You can still play the game with just the frontend. 
+
+![Gameplay](img/connect4.png)
 
 ## Dependencies
 
