@@ -24,6 +24,13 @@ cargo install cargo-web
 
 The backend uses MongoDB for storing game history. Instructions for how to install MongoDB can be found [here.](https://docs.mongodb.com/manual/installation/)
 
+### nightly
+[Rocket](https://rocket.rs/) requires the latest version of Rust nightly ([see here](https://rocket.rs/v0.4/guide/getting-started/)).
+From the base directory of the project, run:
+```bash
+rustup override set nightly
+```
+
 ## Run
 
 The project can be built and ran from by executing the following commands from the base directory of the project.
